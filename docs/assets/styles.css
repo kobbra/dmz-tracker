@@ -322,7 +322,6 @@ img {
   padding: 1rem;
   border-radius: var(--radius-lg);
   display: grid;
-  gap: 0.85rem;
   align-content: start;
   align-self: start;
 }
