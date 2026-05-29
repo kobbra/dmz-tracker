@@ -527,6 +527,107 @@
     });
   }
 
+  function initMobileNav() {
+    var header = document.querySelector(".site-header");
+    var bar = header && header.querySelector(".site-header__bar");
+    var nav = header && header.querySelector(".site-nav");
+    var mobileQuery;
+    var toggle;
+    var navId;
+
+    if (!header || !bar || !nav) {
+      return;
+    }
+
+    mobileQuery = typeof window.matchMedia === "function"
+      ? window.matchMedia("(max-width: 640px)")
+      : null;
+    navId = nav.id || "site-nav-primary";
+    nav.id = navId;
+    header.classList.add("is-nav-enhanced");
+
+    toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "nav-toggle";
+    toggle.setAttribute("aria-controls", navId);
+    toggle.innerHTML = "" +
+      '<span class="visually-hidden">Toggle navigation menu</span>' +
+      '<span class="nav-toggle__bars" aria-hidden="true"><span></span><span></span><span></span></span>';
+
+    function isMobileNav() {
+      return Boolean(mobileQuery && mobileQuery.matches);
+    }
+
+    function setNavState(isOpen) {
+      header.classList.toggle("is-nav-open", isOpen);
+      toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      toggle.setAttribute("aria-label", isOpen ? "Close navigation menu" : "Open navigation menu");
+
+      if (isMobileNav()) {
+        nav.hidden = !isOpen;
+      } else {
+        nav.hidden = false;
+      }
+    }
+
+    function syncNavState() {
+      if (!isMobileNav()) {
+        setNavState(false);
+        return;
+      }
+
+      setNavState(header.classList.contains("is-nav-open"));
+    }
+
+    toggle.addEventListener("click", function () {
+      setNavState(!header.classList.contains("is-nav-open"));
+    });
+
+    nav.addEventListener("click", function (event) {
+      if (!isMobileNav()) {
+        return;
+      }
+
+      if (event.target.closest(".site-nav__link")) {
+        setNavState(false);
+      }
+    });
+
+    document.addEventListener("click", function (event) {
+      if (!isMobileNav() || !header.classList.contains("is-nav-open")) {
+        return;
+      }
+
+      if (!header.contains(event.target)) {
+        setNavState(false);
+      }
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key !== "Escape" || !header.classList.contains("is-nav-open")) {
+        return;
+      }
+
+      setNavState(false);
+      toggle.focus();
+    });
+
+    if (mobileQuery) {
+      if (typeof mobileQuery.addEventListener === "function") {
+        mobileQuery.addEventListener("change", syncNavState);
+      } else if (typeof mobileQuery.addListener === "function") {
+        mobileQuery.addListener(syncNavState);
+      }
+    }
+
+    bar.insertBefore(toggle, nav);
+    syncNavState();
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    initMobileNav();
+  });
+
   window.DMZApp = {
     escapeHtml: escapeHtml,
     getCategories: getCategories,
