@@ -32,10 +32,16 @@ var categoryPages = [
 ];
 
 var fso = new ActiveXObject("Scripting.FileSystemObject");
-var shell = new ActiveXObject("WScript.Shell");
 var scriptDir = fso.GetParentFolderName(WScript.ScriptFullName);
 var repoRoot = fso.GetParentFolderName(scriptDir);
 var outputPath = fso.BuildPath(repoRoot, "assets\\data\\dmz-upgrades.js");
+var cdnIconPrefix = "https://cdn.wzhub.gg/dmz/";
+var localIconPrefix = "./assets/images/dmz/";
+var imageCacheRoot = fso.BuildPath(repoRoot, "assets\\images\\dmz");
+var cachedIconPaths = {};
+var cachedIconTotal = 0;
+var cachedIconDownloaded = 0;
+var cachedIconSkipped = 0;
 
 function fetchText(url) {
   var request = new ActiveXObject("WinHttp.WinHttpRequest.5.1");
@@ -48,6 +54,86 @@ function fetchText(url) {
   }
 
   return request.ResponseText;
+}
+
+function stripUrlQuery(value) {
+  var text = String(value || "");
+  var queryIndex = text.indexOf("?");
+
+  return queryIndex === -1 ? text : text.substring(0, queryIndex);
+}
+
+function getRemoteIconPath(iconPath) {
+  var path = stripUrlQuery(iconPath);
+
+  if (path.indexOf(cdnIconPrefix) !== 0) {
+    return "";
+  }
+
+  return path;
+}
+
+function getLocalIconPath(iconPath) {
+  var remotePath = getRemoteIconPath(iconPath);
+
+  if (!remotePath) {
+    return iconPath || "";
+  }
+
+  return localIconPrefix + remotePath.substring(cdnIconPrefix.length);
+}
+
+function getIconCacheFilePath(iconPath) {
+  var remotePath = getRemoteIconPath(iconPath);
+  var relativePath;
+
+  if (!remotePath) {
+    return "";
+  }
+
+  relativePath = remotePath.substring(cdnIconPrefix.length).replace(/\//g, "\\");
+  return fso.BuildPath(imageCacheRoot, relativePath);
+}
+
+function cacheIcon(iconPath) {
+  var remotePath = getRemoteIconPath(iconPath);
+  var localPath;
+  var folder;
+  var request;
+  var stream;
+
+  if (!remotePath || cachedIconPaths[remotePath]) {
+    return;
+  }
+
+  cachedIconPaths[remotePath] = true;
+  cachedIconTotal += 1;
+  localPath = getIconCacheFilePath(remotePath);
+
+  if (fso.FileExists(localPath) && fso.GetFile(localPath).Size > 0) {
+    cachedIconSkipped += 1;
+    return;
+  }
+
+  folder = fso.GetParentFolderName(localPath);
+  ensureFolder(folder);
+
+  request = new ActiveXObject("WinHttp.WinHttpRequest.5.1");
+  request.Open("GET", encodeURI(remotePath), false);
+  request.SetRequestHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+  request.Send();
+
+  if (request.Status !== 200) {
+    throw new Error("Image request failed for " + remotePath + " with status " + request.Status);
+  }
+
+  stream = new ActiveXObject("ADODB.Stream");
+  stream.Type = 1;
+  stream.Open();
+  stream.Write(request.ResponseBody);
+  stream.SaveToFile(localPath, 2);
+  stream.Close();
+  cachedIconDownloaded += 1;
 }
 
 function extractNuxtScript(html, url) {
@@ -94,23 +180,27 @@ function simplifyItems(page, nuxtData) {
     tasks = [];
 
     for (taskIndex = 0; taskIndex < item.tasks.length; taskIndex += 1) {
+      cacheIcon(item.tasks[taskIndex].icon_path || "");
       tasks.push({
         id: page.slug + "-task-" + item.tasks[taskIndex].id,
         title: item.tasks[taskIndex].title,
         totalCount: item.tasks[taskIndex].total_count,
-        iconPath: item.tasks[taskIndex].icon_path || ""
+        iconPath: getLocalIconPath(item.tasks[taskIndex].icon_path || "")
       });
       totalTasks += 1;
     }
 
+    cacheIcon(item.icon_path || "");
+    cacheIcon(item.rewards && item.rewards.icon_path ? item.rewards.icon_path : "");
+
     upgrades.push({
       id: page.slug + "-upgrade-" + item.id,
       title: item.title,
-      iconPath: item.icon_path || "",
+      iconPath: getLocalIconPath(item.icon_path || ""),
       unlock: item.unlock,
       tasks: tasks,
       reward: item.rewards ? item.rewards.title : "",
-      rewardIconPath: item.rewards && item.rewards.icon_path ? item.rewards.icon_path : ""
+      rewardIconPath: getLocalIconPath(item.rewards && item.rewards.icon_path ? item.rewards.icon_path : "")
     });
   }
 
@@ -248,7 +338,8 @@ function main() {
 
   contents = "window.DMZ_UPGRADES = " + toPrettyJson(dataset) + ";\n";
   writeFile(outputPath, contents);
-  WScript.Echo("Wrote " + outputPath + " with " + dataset.length + " categories.");
+  WScript.Echo("Wrote " + outputPath + " with " + dataset.length + " categories and " + cachedIconTotal + " local icon paths.");
+  WScript.Echo("Downloaded " + cachedIconDownloaded + " icons, reused " + cachedIconSkipped + " cached icons.");
 }
 
 main();
