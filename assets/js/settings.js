@@ -55,6 +55,10 @@
     };
   }
 
+  function formatCount(value, singularLabel, pluralLabel) {
+    return value + " " + (value === 1 ? singularLabel : pluralLabel);
+  }
+
   function parseBackupPayload(text) {
     var parsed;
     var nextState;
@@ -104,6 +108,10 @@
           '</button>' +
         '</div>' +
         '<p class="settings-dialog__copy">Manage the DMZ progress saved in this browser. Backups and resets include both tracked task counts and favorites.</p>' +
+        '<div class="settings-dialog__summary" aria-label="Current saved progress summary">' +
+          '<span id="settingsSnapshotTasks" class="settings-dialog__stat"></span>' +
+          '<span id="settingsSnapshotFavorites" class="settings-dialog__stat"></span>' +
+        '</div>' +
         '<p id="settingsFeedback" class="settings-dialog__feedback" hidden></p>' +
         '<div class="settings-dialog__grid">' +
           '<section class="settings-dialog__card">' +
@@ -133,7 +141,7 @@
             '<p class="settings-dialog__card-title">Reset progress</p>' +
             '<p class="settings-dialog__card-copy">Clear every saved task count and favorite from this browser.</p>' +
             '<div class="settings-dialog__action-row">' +
-              '<button class="button button--danger" type="button" data-action="request-reset">Reset all progress</button>' +
+              '<button class="button button--ghost settings-dialog__button--danger" type="button" data-action="request-reset">Reset all progress</button>' +
             '</div>' +
             '<div id="settingsResetConfirm" class="settings-dialog__confirm settings-dialog__confirm--danger" hidden>' +
               '<p class="settings-dialog__confirm-copy">This will remove all tracked progress and favorites saved in this browser.</p>' +
@@ -153,6 +161,8 @@
   function initSettings(trigger) {
     var dialog = createSettingsDialog();
     var feedback = dialog.querySelector("#settingsFeedback");
+    var snapshotTasks = dialog.querySelector("#settingsSnapshotTasks");
+    var snapshotFavorites = dialog.querySelector("#settingsSnapshotFavorites");
     var restoreInput = dialog.querySelector("#settingsRestoreInput");
     var restoreMeta = dialog.querySelector("#settingsRestoreMeta");
     var restoreConfirm = dialog.querySelector("#settingsRestoreConfirm");
@@ -176,6 +186,13 @@
 
       feedback.hidden = false;
       feedback.textContent = message;
+    }
+
+    function renderSnapshot() {
+      var summary = summarizeState(window.DMZStorage.getState());
+
+      snapshotTasks.textContent = formatCount(summary.trackedTasks, "tracked task", "tracked tasks");
+      snapshotFavorites.textContent = formatCount(summary.favoriteCount, "favorite saved", "favorites saved");
     }
 
     function clearRestoreState() {
@@ -221,6 +238,7 @@
 
       previousFocus = document.activeElement;
       resetDialogState();
+      renderSnapshot();
       dialog.hidden = false;
       document.body.classList.add("has-modal-open");
 
@@ -364,6 +382,9 @@
       });
       reader.readAsText(file);
     });
+
+    window.DMZStorage.subscribe(renderSnapshot);
+    renderSnapshot();
   }
 
   document.addEventListener("DOMContentLoaded", function () {
