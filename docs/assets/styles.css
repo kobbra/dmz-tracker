@@ -319,11 +319,12 @@ img {
 }
 
 .hero__panel {
-  padding: 1.2rem;
+  padding: 1rem;
   border-radius: var(--radius-lg);
   display: grid;
-  gap: 1rem;
+  gap: 0.85rem;
   align-content: start;
+  align-self: start;
 }
 
 .hero__panel-title,
