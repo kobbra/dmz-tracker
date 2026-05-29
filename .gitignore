@@ -8,3 +8,6 @@ Thumbs.db
 # Local dependencies and logs
 node_modules/
 *.log
+
+# Local app backups
+dmz-tracker-backup-*.json
