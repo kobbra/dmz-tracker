@@ -139,7 +139,6 @@
     var filterMeta = document.getElementById("filterMeta");
     var groups = document.getElementById("categoryGroups");
     var searchInput = document.getElementById("categorySearch");
-    var resetButton = document.getElementById("resetProgress");
     var lastStatsKey = "";
     var query = "";
 
@@ -235,12 +234,6 @@
     searchInput.addEventListener("input", function (event) {
       query = event.target.value;
       render();
-    });
-
-    resetButton.addEventListener("click", function () {
-      if (window.confirm("Reset all tracked DMZ progress in this browser?")) {
-        window.DMZStorage.reset();
-      }
     });
 
     window.addEventListener("hashchange", window.DMZApp.highlightHashTarget);

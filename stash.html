@@ -9,6 +9,7 @@
     <script src="./assets/data/dmz-upgrades.js" defer></script>
     <script src="./assets/js/storage.js" defer></script>
     <script src="./assets/js/shared.js" defer></script>
+    <script src="./assets/js/settings.js" defer></script>
     <script src="./assets/js/category.js" defer></script>
   </head>
   <body data-page="category" data-category="stash">
@@ -63,7 +64,13 @@
             </div>
             <div class="toolbar__group">
               <span id="filterMeta" class="chip"></span>
-              <button id="resetProgress" class="button button--danger" type="button">Reset all progress</button>
+              <button id="settingsButton" class="settings-trigger" type="button" aria-label="Open progress settings" aria-controls="settingsDialog" aria-haspopup="dialog">
+                <span class="settings-trigger__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.48.48 0 0 0 .11-.61l-1.92-3.32a.49.49 0 0 0-.58-.22l-2.39.96a7.03 7.03 0 0 0-1.63-.94L14.4 2.8a.49.49 0 0 0-.48-.38h-3.84a.49.49 0 0 0-.48.38l-.36 2.55c-.58.23-1.13.54-1.63.94l-2.39-.96a.49.49 0 0 0-.58.22L2.72 8.87a.48.48 0 0 0 .11.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.48.48 0 0 0-.11.61l1.92 3.32c.13.22.39.31.58.22l2.39-.96c.5.4 1.05.72 1.63.94l.36 2.55c.04.24.24.38.48.38h3.84c.24 0 .44-.14.48-.38l.36-2.55c.58-.23 1.13-.54 1.63-.94l2.39.96c.19.09.45 0 .58-.22l1.92-3.32a.48.48 0 0 0-.11-.61l-2.03-1.58ZM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2Z"></path>
+                  </svg>
+                </span>
+              </button>
             </div>
           </div>
 

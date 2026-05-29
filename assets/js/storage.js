@@ -144,6 +144,12 @@
     emitChange();
   }
 
+  function replaceState(nextState) {
+    state = sanitizeState(nextState);
+    persist();
+    emitChange();
+  }
+
   function subscribe(listener) {
     window.addEventListener("dmz-progress-change", listener);
 
@@ -166,6 +172,7 @@
     isFavoriteUpgrade: isFavoriteUpgrade,
     toggleFavoriteUpgrade: toggleFavoriteUpgrade,
     reset: reset,
+    replaceState: replaceState,
     subscribe: subscribe,
     getStatus: getStatus
   };

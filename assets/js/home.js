@@ -259,7 +259,6 @@
     }
 
     var searchInput = document.getElementById("homeSearch");
-    var resetButton = document.getElementById("resetProgress");
     var storageNotice = document.getElementById("storageNotice");
     var meter = document.getElementById("overallMeter");
     var metrics = document.getElementById("metricGrid");
@@ -296,12 +295,6 @@
     searchInput.addEventListener("input", function (event) {
       query = event.target.value;
       render();
-    });
-
-    resetButton.addEventListener("click", function () {
-      if (window.confirm("Reset all tracked DMZ progress in this browser?")) {
-        window.DMZStorage.reset();
-      }
     });
 
     favoritesGrid.addEventListener("click", function (event) {
