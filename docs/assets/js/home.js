@@ -259,7 +259,6 @@
     }
 
     var searchInput = document.getElementById("homeSearch");
-    var storageNotice = document.getElementById("storageNotice");
     var meter = document.getElementById("overallMeter");
     var metrics = document.getElementById("metricGrid");
     var categoryGrid = document.getElementById("categoryGrid");
@@ -276,7 +275,6 @@
       var favoriteState = renderFavoriteSection(state);
       var searchState = renderSearchMatches(query, state);
 
-      window.DMZApp.renderStorageNotice(storageNotice);
       window.DMZApp.renderMeter(meter, stats.percent, "overall completion");
       metrics.innerHTML = renderMetricGrid(stats);
       favoritesMeta.textContent = favoriteState.meta;

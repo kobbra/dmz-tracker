@@ -310,7 +310,6 @@ img {
 .category-card,
 .group-card,
 .match-card,
-.storage-banner,
 .empty-state {
   background: var(--panel);
   border: 1px solid var(--panel-outline);
@@ -834,27 +833,6 @@ body.has-modal-open {
 .settings-dialog__button--danger:focus-visible {
   background: rgba(115, 60, 69, 0.56);
   border-color: rgba(191, 97, 106, 0.38);
-}
-
-.storage-banner {
-  margin-top: 1rem;
-  padding: 0.95rem 1rem;
-  border-radius: var(--radius-md);
-  color: var(--text-soft);
-}
-
-.storage-banner.is-warning {
-  border-color: rgba(191, 97, 106, 0.34);
-  background: rgba(95, 52, 58, 0.65);
-}
-
-.storage-banner__title {
-  display: block;
-  margin-bottom: 0.25rem;
-  font-size: 0.8rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--nord13);
 }
 
 .section-heading {
@@ -1788,7 +1766,6 @@ body[data-page="category"] .group-card {
   .category-card,
   .group-card,
   .match-card,
-  .storage-banner,
   .empty-state {
     border-radius: 20px;
   }

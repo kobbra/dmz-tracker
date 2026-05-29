@@ -483,20 +483,6 @@
     return Math.round(value) + "%";
   }
 
-  function renderStorageNotice(container) {
-    var status = window.DMZStorage.getStatus();
-
-    if (!container) {
-      return;
-    }
-
-    container.className = "storage-banner" + (status.available ? "" : " is-warning");
-    container.innerHTML = "<span class=\"storage-banner__title\">Local-only save state</span>" +
-      (status.available
-        ? "Progress is stored only in this browser through localStorage. No login, no sync, no backend."
-        : "localStorage is unavailable here, so progress will only survive until the tab closes.");
-  }
-
   function renderMeter(container, percent, label) {
     if (!container) {
       return;
@@ -649,7 +635,6 @@
     renderFavoriteToggle: renderFavoriteToggle,
     renderItemIcon: renderItemIcon,
     renderTaskControlRow: renderTaskControlRow,
-    renderStorageNotice: renderStorageNotice,
     renderMeter: renderMeter,
     formatPercent: formatPercent,
     clampTaskCount: clampTaskCount,

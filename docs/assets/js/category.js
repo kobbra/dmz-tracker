@@ -131,7 +131,6 @@
 
     var slug = document.body.dataset.category;
     var category = window.DMZApp.getCategory(slug);
-    var storageNotice = document.getElementById("storageNotice");
     var titleNode = document.getElementById("categoryTitle");
     var copyNode = document.getElementById("categoryCopy");
     var meter = document.getElementById("categoryMeter");
@@ -149,7 +148,6 @@
     document.title = category.title + " | DMZ Tracker";
     titleNode.textContent = category.title;
     copyNode.textContent = category.summary;
-    window.DMZApp.renderStorageNotice(storageNotice);
 
     function getStatsKey(stats) {
       return [
