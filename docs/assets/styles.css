@@ -327,6 +327,21 @@ img {
   align-self: start;
 }
 
+body[data-page="home"] .hero__panel {
+  align-self: stretch;
+  grid-template-rows: auto 1fr;
+  justify-items: center;
+}
+
+body[data-page="home"] .hero__panel-title {
+  justify-self: start;
+}
+
+body[data-page="home"] .hero__panel .meter {
+  align-self: center;
+  margin: 0 auto;
+}
+
 .hero__panel-title,
 .panel__title,
 .group-card__title {
