@@ -119,8 +119,8 @@ img {
 }
 
 .brand__mark {
-  width: 68px;
-  height: 80px;
+  width: 64px;
+  height: 75px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1340,8 +1340,8 @@ body[data-page="category"] .group-card {
   }
 
   .brand__mark {
-    width: 56px;
-    height: 66px;
+    width: 52px;
+    height: 61px;
   }
 
   .page {
