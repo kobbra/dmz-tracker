@@ -115,21 +115,15 @@ img {
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.9rem;
+  gap: 0.45rem;
 }
 
 .brand__mark {
-  width: 86px;
-  height: 44px;
-  padding: 0.35rem 0.55rem;
-  border-radius: 14px;
-  background: linear-gradient(135deg, rgba(59, 66, 82, 0.92), rgba(46, 52, 64, 0.96));
-  border: 1px solid rgba(136, 192, 208, 0.16);
+  width: 132px;
+  height: 66px;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  box-shadow: var(--shadow-md);
   flex-shrink: 0;
 }
 
@@ -138,7 +132,6 @@ img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 6px 12px rgba(11, 14, 21, 0.28));
 }
 
 .brand__eyebrow {
@@ -1347,9 +1340,8 @@ body[data-page="category"] .group-card {
   }
 
   .brand__mark {
-    width: 78px;
-    height: 40px;
-    padding: 0.3rem 0.45rem;
+    width: 110px;
+    height: 55px;
   }
 
   .page {
