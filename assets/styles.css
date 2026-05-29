@@ -119,18 +119,26 @@ img {
 }
 
 .brand__mark {
-  width: 44px;
+  width: 86px;
   height: 44px;
+  padding: 0.35rem 0.55rem;
   border-radius: 14px;
-  background:
-    radial-gradient(circle at 30% 30%, rgba(235, 203, 139, 0.9), transparent 28%),
-    linear-gradient(135deg, rgba(94, 129, 172, 0.95), rgba(46, 52, 64, 0.96));
-  display: grid;
-  place-items: center;
-  color: var(--nord0);
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  background: linear-gradient(135deg, rgba(59, 66, 82, 0.92), rgba(46, 52, 64, 0.96));
+  border: 1px solid rgba(136, 192, 208, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
   box-shadow: var(--shadow-md);
+  flex-shrink: 0;
+}
+
+.brand__mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 12px rgba(11, 14, 21, 0.28));
 }
 
 .brand__eyebrow {
@@ -1336,6 +1344,12 @@ body[data-page="category"] .group-card {
 @media (max-width: 640px) {
   .shell-inner {
     width: min(100vw - 1rem, 1200px);
+  }
+
+  .brand__mark {
+    width: 78px;
+    height: 40px;
+    padding: 0.3rem 0.45rem;
   }
 
   .page {
