@@ -115,23 +115,25 @@ img {
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.35rem;
 }
 
 .brand__mark {
-  width: 132px;
-  height: 66px;
+  width: 72px;
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .brand__mark img {
   display: block;
-  width: 100%;
-  height: 100%;
+  width: 152%;
+  height: 152%;
   object-fit: contain;
+  transform: translateX(-2px);
 }
 
 .brand__eyebrow {
@@ -1340,8 +1342,8 @@ body[data-page="category"] .group-card {
   }
 
   .brand__mark {
-    width: 110px;
-    height: 55px;
+    width: 60px;
+    height: 60px;
   }
 
   .page {
