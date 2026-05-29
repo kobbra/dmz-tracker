@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Weapons Locker | DMZ Tracker</title>
+    <meta name="description" content="Track DMZ weapons locker upgrades locally in your browser.">
+    <link rel="stylesheet" href="./assets/styles.css">
+    <script src="./assets/data/dmz-upgrades.js" defer></script>
+    <script src="./assets/js/storage.js" defer></script>
+    <script src="./assets/js/shared.js" defer></script>
+    <script src="./assets/js/category.js" defer></script>
+  </head>
+  <body data-page="category" data-category="weapons-locker">
+    <div class="site-shell">
+      <header class="site-header">
+        <div class="shell-inner site-header__bar">
+          <a class="brand" href="./index.html">
+            <div class="brand__mark">DMZ</div>
+            <div>
+              <p class="brand__eyebrow">Local progress tracker</p>
+              <p class="brand__title">DMZ Upgrades</p>
+            </div>
+          </a>
+          <nav class="site-nav" aria-label="Primary">
+            <a class="site-nav__link" href="./index.html">Home</a>
+            <a class="site-nav__link" href="./stash.html">Stash</a>
+            <a class="site-nav__link is-active" href="./weapons-locker.html">Weapons Locker</a>
+            <a class="site-nav__link" href="./bounty-board.html">Bounty Board</a>
+            <a class="site-nav__link" href="./communications.html">Communications</a>
+            <a class="site-nav__link" href="./equipment.html">Equipment</a>
+          </nav>
+        </div>
+      </header>
+
+      <main class="page">
+        <div class="shell-inner">
+          <section class="hero">
+            <div class="hero__grid">
+              <div>
+                <p class="eyebrow">Category tracker</p>
+                <h1 id="categoryTitle" class="hero__title">Weapons Locker</h1>
+                <p id="categoryCopy" class="hero__copy"></p>
+                <div class="hero__note"><a href="./index.html">Back to homepage</a></div>
+                <div id="storageNotice"></div>
+              </div>
+              <aside class="hero__panel">
+                <p class="hero__panel-title">Category status</p>
+                <div id="categoryMeter" class="meter"></div>
+                <p class="hero__panel-copy">Slot unlocks and cooldown reductions share the same local progress state as the homepage dashboard.</p>
+              </aside>
+            </div>
+            <div id="categoryMetrics" class="metric-grid"></div>
+          </section>
+
+          <div class="toolbar">
+            <div class="toolbar__group">
+              <label class="search-field" for="categorySearch">
+                <span class="search-field__icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Search weapons locker upgrades</span>
+                <input id="categorySearch" type="search" placeholder="Search insured slots, contraband, or required items">
+              </label>
+            </div>
+            <div class="toolbar__group">
+              <span id="filterMeta" class="chip"></span>
+              <button id="resetProgress" class="button button--danger" type="button">Reset all progress</button>
+            </div>
+          </div>
+
+          <section id="categoryGroups" class="group-stack"></section>
+
+          <noscript class="no-script">This tracker needs JavaScript to render the data and save your local progress.</noscript>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <div class="shell-inner footer__inner">
+          <div>Weapons locker progress stays local to this browser.</div>
+          <div><a href="./index.html">Return to the dashboard</a></div>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>

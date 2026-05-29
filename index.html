@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DMZ Upgrades Tracker</title>
+    <meta name="description" content="Static DMZ upgrades tracker with local-only progress saved in localStorage.">
+    <link rel="stylesheet" href="./assets/styles.css">
+    <script src="./assets/data/dmz-upgrades.js" defer></script>
+    <script src="./assets/js/storage.js" defer></script>
+    <script src="./assets/js/shared.js" defer></script>
+    <script src="./assets/js/home.js" defer></script>
+  </head>
+  <body data-page="home">
+    <div class="site-shell">
+      <header class="site-header">
+        <div class="shell-inner site-header__bar">
+          <a class="brand" href="./index.html">
+            <div class="brand__mark">DMZ</div>
+            <div>
+              <p class="brand__eyebrow">Local progress tracker</p>
+              <p class="brand__title">DMZ Upgrades</p>
+            </div>
+          </a>
+          <nav class="site-nav" aria-label="Primary">
+            <a class="site-nav__link is-active" href="./index.html">Home</a>
+            <a class="site-nav__link" href="./stash.html">Stash</a>
+            <a class="site-nav__link" href="./weapons-locker.html">Weapons Locker</a>
+            <a class="site-nav__link" href="./bounty-board.html">Bounty Board</a>
+            <a class="site-nav__link" href="./communications.html">Communications</a>
+            <a class="site-nav__link" href="./equipment.html">Equipment</a>
+          </nav>
+        </div>
+      </header>
+
+      <main class="page">
+        <div class="shell-inner">
+          <section class="hero">
+            <div class="hero__grid">
+              <div>
+                <p class="eyebrow">Static tracker</p>
+                <h1 class="hero__title">DMZ Upgrade Control Board</h1>
+                <p class="hero__copy">Track every DMZ upgrade path from a single static homepage, drill into category pages, and keep all progress in this browser only. No account, no sync prompt, and no dependency on a running server.</p>
+                <div class="hero__note">Built for direct file opens and localStorage-only progress.</div>
+                <div id="storageNotice"></div>
+              </div>
+              <aside class="hero__panel">
+                <p class="hero__panel-title">Mission status</p>
+                <div id="overallMeter" class="meter"></div>
+                <p class="hero__panel-copy">Overall completion uses the average progress of each upgrade card, so partial work still shows up without letting huge collection totals dominate the board.</p>
+              </aside>
+            </div>
+            <div id="metricGrid" class="metric-grid"></div>
+          </section>
+
+          <div class="toolbar">
+            <div class="toolbar__group">
+              <label class="search-field" for="homeSearch">
+                <span class="search-field__icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Search upgrades</span>
+                <input id="homeSearch" type="search" placeholder="Search categories, upgrades, factions, or task names">
+              </label>
+            </div>
+            <div class="toolbar__group">
+              <button id="resetProgress" class="button button--danger" type="button">Reset all progress</button>
+            </div>
+          </div>
+
+          <section class="panel favorites-panel">
+            <div class="panel__header">
+              <div>
+                <h2 class="section-heading__title">Favorite upgrades</h2>
+                <p class="section-heading__copy">Pin your favorite upgrades from any category page and jump back into them from the homepage.</p>
+              </div>
+              <p id="favoritesMeta" class="panel__copy"></p>
+            </div>
+            <div id="favoritesGrid" class="match-grid"></div>
+          </section>
+
+          <section>
+            <div class="section-heading">
+              <div>
+                <h2 class="section-heading__title">Category overview</h2>
+                <p class="section-heading__copy">Each category page keeps numeric task progress locally and rolls its status back into this dashboard.</p>
+              </div>
+            </div>
+            <div id="categoryGrid" class="category-grid"></div>
+          </section>
+
+          <section id="searchResultsSection" class="panel" hidden>
+            <div class="panel__header">
+              <div>
+                <h2 class="section-heading__title">Search results</h2>
+                <p class="section-heading__copy">Jump directly to the matching upgrade card.</p>
+              </div>
+              <p id="searchResultsMeta" class="panel__copy"></p>
+            </div>
+            <div id="searchResults" class="match-grid"></div>
+          </section>
+
+          <noscript class="no-script">This tracker needs JavaScript to render the data and save your local progress.</noscript>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <div class="shell-inner footer__inner">
+          <div>DMZ tracker shell built for static hosting or direct file opens.</div>
+          <div>Progress stays in this browser only.</div>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>

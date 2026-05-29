@@ -1,0 +1,10 @@
+# OS artifacts
+Thumbs.db
+.DS_Store
+
+# Editor settings
+.vscode/
+
+# Local dependencies and logs
+node_modules/
+*.log
