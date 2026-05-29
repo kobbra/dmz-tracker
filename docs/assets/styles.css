@@ -278,7 +278,7 @@ img {
 
 .hero__title {
   margin: 0.7rem 0 0;
-  max-width: 13ch;
+  max-width: 16ch;
   font-size: clamp(2.4rem, 6vw, 4.6rem);
   line-height: 0.94;
   letter-spacing: 0.04em;
