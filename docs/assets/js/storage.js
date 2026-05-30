@@ -111,6 +111,16 @@
     return state.favoriteUpgradeIds.indexOf(upgradeId) !== -1;
   }
 
+  function favoriteOrdersMatch(nextFavoriteUpgradeIds) {
+    if (nextFavoriteUpgradeIds.length !== state.favoriteUpgradeIds.length) {
+      return false;
+    }
+
+    return nextFavoriteUpgradeIds.every(function (upgradeId, index) {
+      return state.favoriteUpgradeIds[index] === upgradeId;
+    });
+  }
+
   function toggleFavoriteUpgrade(upgradeId) {
     var favoriteIndex;
 
@@ -126,6 +136,46 @@
       state.favoriteUpgradeIds.splice(favoriteIndex, 1);
     }
 
+    persist();
+    emitChange();
+  }
+
+  function setFavoriteUpgradeOrder(nextFavoriteUpgradeIds) {
+    var seen = Object.create(null);
+    var available = Object.create(null);
+    var reordered = [];
+
+    if (!Array.isArray(nextFavoriteUpgradeIds)) {
+      return;
+    }
+
+    state.favoriteUpgradeIds.forEach(function (upgradeId) {
+      available[upgradeId] = true;
+    });
+
+    nextFavoriteUpgradeIds.forEach(function (upgradeId) {
+      if (!available[upgradeId] || seen[upgradeId]) {
+        return;
+      }
+
+      seen[upgradeId] = true;
+      reordered.push(upgradeId);
+    });
+
+    state.favoriteUpgradeIds.forEach(function (upgradeId) {
+      if (seen[upgradeId]) {
+        return;
+      }
+
+      seen[upgradeId] = true;
+      reordered.push(upgradeId);
+    });
+
+    if (favoriteOrdersMatch(reordered)) {
+      return;
+    }
+
+    state.favoriteUpgradeIds = reordered;
     persist();
     emitChange();
   }
@@ -171,6 +221,7 @@
     setTaskCount: setTaskCount,
     isFavoriteUpgrade: isFavoriteUpgrade,
     toggleFavoriteUpgrade: toggleFavoriteUpgrade,
+    setFavoriteUpgradeOrder: setFavoriteUpgradeOrder,
     reset: reset,
     replaceState: replaceState,
     subscribe: subscribe,

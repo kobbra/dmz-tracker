@@ -1,5 +1,6 @@
 (function () {
   var collapsedFavoriteIds = Object.create(null);
+  var FAVORITES_FULLSCREEN_CLASS = "is-favorites-fullscreen";
 
   function renderMetricGrid(stats) {
     return [
@@ -195,12 +196,13 @@
     return false;
   }
 
-  function renderFavoriteSection(state) {
+  function renderFavoriteSection(state, isFavoritesFullscreen) {
     var entries = state.favoriteUpgradeIds.map(function (upgradeId) {
       return window.DMZApp.getUpgradeEntry(upgradeId);
     }).filter(function (entry) {
       return Boolean(entry);
     });
+    var canReorder = isFavoritesFullscreen && entries.length > 1;
 
     if (!entries.length) {
       return {
@@ -210,7 +212,7 @@
     }
 
     return {
-      meta: entries.length + (entries.length === 1 ? " favorite pinned" : " favorites pinned"),
+      meta: entries.length + (entries.length === 1 ? " favorite pinned" : " favorites pinned") + (canReorder ? " • Drag cards to reorder" : ""),
       content: entries.map(function (entry) {
         var meta = window.DMZApp.getCategoryMeta(entry.category.slug);
         var stats = window.DMZApp.getUpgradeStats(entry.upgrade, state);
@@ -221,7 +223,7 @@
           return task.title;
         }).join(" | ");
 
-        return "<details class=\"match-card favorite-card\" data-upgrade-id=\"" + entry.upgrade.id + "\"" + (isCollapsed ? "" : " open") + ">" +
+        return "<details class=\"match-card favorite-card\" data-upgrade-id=\"" + entry.upgrade.id + "\"" + (canReorder ? " draggable=\"true\"" : "") + (isCollapsed ? "" : " open") + ">" +
           "<summary class=\"favorite-card__summary\">" +
             "<div class=\"favorite-card__summary-main\">" +
               "<div class=\"match-card__meta\">" +
@@ -237,9 +239,16 @@
                 window.DMZApp.renderProgressTrack(stats.percent, stats.completedTasks + "/" + stats.totalTasks + " tasks", window.DMZApp.formatPercent(stats.percent), true) +
               "</div>" +
             "</div>" +
-            "<span class=\"upgrade-card__collapse\" aria-hidden=\"true\">" +
-              "<span class=\"upgrade-card__collapse-icon\" aria-hidden=\"true\"></span>" +
-            "</span>" +
+            "<div class=\"favorite-card__summary-actions\">" +
+              (canReorder
+                ? "<button class=\"favorite-card__drag-handle\" type=\"button\" data-action=\"drag-handle\" aria-label=\"Drag to reorder favorite\" title=\"Drag to reorder favorite\">" +
+                    "<span class=\"favorite-card__drag-handle-icon\" aria-hidden=\"true\"></span>" +
+                  "</button>"
+                : "") +
+              "<span class=\"upgrade-card__collapse\" aria-hidden=\"true\">" +
+                "<span class=\"upgrade-card__collapse-icon\" aria-hidden=\"true\"></span>" +
+              "</span>" +
+            "</div>" +
           "</summary>" +
           "<div class=\"favorite-card__details\">" +
             "<ul class=\"task-list favorite-card__tasks\">" +
@@ -264,21 +273,164 @@
     var categoryGrid = document.getElementById("categoryGrid");
     var favoritesMeta = document.getElementById("favoritesMeta");
     var favoritesGrid = document.getElementById("favoritesGrid");
+    var fullscreenButton = document.getElementById("favoritesFullscreenButton");
     var resultsSection = document.getElementById("searchResultsSection");
     var resultsMeta = document.getElementById("searchResultsMeta");
     var resultsGrid = document.getElementById("searchResults");
     var query = "";
+    var isFavoritesFullscreen = false;
+    var armedFavoriteId = "";
+    var draggedFavoriteId = "";
+    var dropTargetFavoriteId = "";
+    var dropTargetInsertAfter = false;
+
+    function syncFavoritesFullscreenButton() {
+      if (!fullscreenButton) {
+        return;
+      }
+
+      fullscreenButton.classList.toggle("is-active", isFavoritesFullscreen);
+      fullscreenButton.setAttribute("aria-pressed", isFavoritesFullscreen ? "true" : "false");
+      fullscreenButton.setAttribute("aria-label", isFavoritesFullscreen ? "Exit expanded favorites view" : "Toggle expanded favorites view");
+      fullscreenButton.title = isFavoritesFullscreen ? "Exit expanded favorites view" : "Expand favorite upgrades";
+    }
+
+    function syncFavoritesFullscreenState() {
+      document.body.classList.toggle(FAVORITES_FULLSCREEN_CLASS, isFavoritesFullscreen);
+      syncFavoritesFullscreenButton();
+    }
+
+    function getRenderedFavoriteIds() {
+      return Array.prototype.map.call(favoritesGrid.querySelectorAll(".favorite-card[data-upgrade-id]"), function (card) {
+        return card.dataset.upgradeId;
+      });
+    }
+
+    function clearFavoriteDragClasses() {
+      Array.prototype.forEach.call(favoritesGrid.querySelectorAll(".favorite-card"), function (card) {
+        card.classList.remove("is-dragging", "is-drop-before", "is-drop-after");
+      });
+    }
+
+    function syncFavoriteDragClasses() {
+      clearFavoriteDragClasses();
+
+      Array.prototype.forEach.call(favoritesGrid.querySelectorAll(".favorite-card[data-upgrade-id]"), function (card) {
+        if (card.dataset.upgradeId === draggedFavoriteId) {
+          card.classList.add("is-dragging");
+        }
+
+        if (card.dataset.upgradeId === dropTargetFavoriteId) {
+          card.classList.add(dropTargetInsertAfter ? "is-drop-after" : "is-drop-before");
+        }
+      });
+    }
+
+    function setFavoriteDropTarget(upgradeId, insertAfter) {
+      dropTargetFavoriteId = upgradeId || "";
+      dropTargetInsertAfter = Boolean(insertAfter);
+      syncFavoriteDragClasses();
+    }
+
+    function clearFavoriteDragState() {
+      armedFavoriteId = "";
+      draggedFavoriteId = "";
+      setFavoriteDropTarget("", false);
+    }
+
+    function shouldInsertAfter(card, event) {
+      var rect = card.getBoundingClientRect();
+
+      if (favoritesGrid.clientWidth >= 960) {
+        return event.clientX > rect.left + (rect.width / 2);
+      }
+
+      return event.clientY > rect.top + (rect.height / 2);
+    }
+
+    function getFavoriteDropTarget(event) {
+      var card = event.target.closest(".favorite-card[data-upgrade-id]");
+      var cards = favoritesGrid.querySelectorAll(".favorite-card[data-upgrade-id]");
+      var firstCard;
+      var lastCard;
+
+      if (card) {
+        return {
+          upgradeId: card.dataset.upgradeId,
+          insertAfter: shouldInsertAfter(card, event)
+        };
+      }
+
+      if (!cards.length) {
+        return {
+          upgradeId: "",
+          insertAfter: false
+        };
+      }
+
+      firstCard = cards[0];
+      lastCard = cards[cards.length - 1];
+
+      if (event.clientY < firstCard.getBoundingClientRect().top) {
+        return {
+          upgradeId: firstCard.dataset.upgradeId,
+          insertAfter: false
+        };
+      }
+
+      return {
+        upgradeId: lastCard.dataset.upgradeId,
+        insertAfter: true
+      };
+    }
+
+    function buildFavoriteOrderFromDrop() {
+      var nextOrder = getRenderedFavoriteIds().filter(function (upgradeId) {
+        return upgradeId !== draggedFavoriteId;
+      });
+      var insertIndex;
+
+      if (!dropTargetFavoriteId) {
+        return getRenderedFavoriteIds();
+      }
+
+      insertIndex = nextOrder.indexOf(dropTargetFavoriteId);
+
+      if (insertIndex === -1) {
+        nextOrder.push(draggedFavoriteId);
+        return nextOrder;
+      }
+
+      if (dropTargetInsertAfter) {
+        insertIndex += 1;
+      }
+
+      nextOrder.splice(insertIndex, 0, draggedFavoriteId);
+      return nextOrder;
+    }
+
+    function setFavoritesFullscreen(nextState) {
+      if (isFavoritesFullscreen === nextState) {
+        return;
+      }
+
+      isFavoritesFullscreen = nextState;
+      clearFavoriteDragState();
+      syncFavoritesFullscreenState();
+      render();
+    }
 
     function render() {
       var state = window.DMZStorage.getState();
       var stats = window.DMZApp.getOverallStats(state);
-      var favoriteState = renderFavoriteSection(state);
+      var favoriteState = renderFavoriteSection(state, isFavoritesFullscreen);
       var searchState = renderSearchMatches(query, state);
 
       window.DMZApp.renderMeter(meter, stats.percent, "overall completion");
       metrics.innerHTML = renderMetricGrid(stats);
       favoritesMeta.textContent = favoriteState.meta;
       favoritesGrid.innerHTML = favoriteState.content;
+      syncFavoritesFullscreenState();
       Array.prototype.forEach.call(favoritesGrid.querySelectorAll(".favorite-card"), function (card) {
         card.addEventListener("toggle", function () {
           collapsedFavoriteIds[card.dataset.upgradeId] = !card.open;
@@ -295,12 +447,109 @@
       render();
     });
 
+    if (fullscreenButton) {
+      fullscreenButton.addEventListener("click", function () {
+        setFavoritesFullscreen(!isFavoritesFullscreen);
+      });
+    }
+
+    document.addEventListener("mouseup", function () {
+      if (!draggedFavoriteId) {
+        armedFavoriteId = "";
+      }
+    });
+
+    favoritesGrid.addEventListener("mousedown", function (event) {
+      var handle;
+      var card;
+
+      if (!isFavoritesFullscreen) {
+        return;
+      }
+
+      handle = event.target.closest(".favorite-card__drag-handle");
+
+      if (!handle) {
+        return;
+      }
+
+      card = handle.closest(".favorite-card[data-upgrade-id]");
+      armedFavoriteId = card ? card.dataset.upgradeId : "";
+    });
+
+    favoritesGrid.addEventListener("dragstart", function (event) {
+      var card = event.target.closest(".favorite-card[data-upgrade-id]");
+
+      if (!isFavoritesFullscreen || !card) {
+        return;
+      }
+
+      if (armedFavoriteId !== card.dataset.upgradeId) {
+        event.preventDefault();
+        return;
+      }
+
+      draggedFavoriteId = card.dataset.upgradeId;
+      setFavoriteDropTarget("", false);
+
+      if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", draggedFavoriteId);
+      }
+
+      syncFavoriteDragClasses();
+    });
+
+    favoritesGrid.addEventListener("dragover", function (event) {
+      var target;
+
+      if (!isFavoritesFullscreen || !draggedFavoriteId) {
+        return;
+      }
+
+      event.preventDefault();
+      target = getFavoriteDropTarget(event);
+
+      if (!target.upgradeId || target.upgradeId === draggedFavoriteId) {
+        setFavoriteDropTarget("", false);
+      } else {
+        setFavoriteDropTarget(target.upgradeId, target.insertAfter);
+      }
+
+      if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = "move";
+      }
+    });
+
+    favoritesGrid.addEventListener("drop", function (event) {
+      var nextOrder;
+
+      if (!isFavoritesFullscreen || !draggedFavoriteId) {
+        return;
+      }
+
+      event.preventDefault();
+      nextOrder = buildFavoriteOrderFromDrop();
+      clearFavoriteDragState();
+      window.DMZStorage.setFavoriteUpgradeOrder(nextOrder);
+    });
+
+    favoritesGrid.addEventListener("dragend", function () {
+      clearFavoriteDragState();
+    });
+
     favoritesGrid.addEventListener("click", function (event) {
       var trigger = event.target.closest("[data-action]");
       var total;
       var current;
 
       if (!trigger) {
+        return;
+      }
+
+      if (trigger.dataset.action === "drag-handle") {
+        event.preventDefault();
+        event.stopPropagation();
         return;
       }
 
