@@ -208,6 +208,22 @@
     return 6;
   }
 
+  function normalizeFavoriteQuery(value) {
+    return String(value || "").toLowerCase().replace(/\s+/g, " ").trim();
+  }
+
+  function favoriteEntryMatchesQuery(entry, query) {
+    var normalizedQuery = normalizeFavoriteQuery(query);
+
+    if (!normalizedQuery) {
+      return true;
+    }
+
+    return window.DMZApp.upgradeMatchesQuery(entry.upgrade, normalizedQuery) ||
+      normalizeFavoriteQuery(entry.category.title).indexOf(normalizedQuery) !== -1 ||
+      normalizeFavoriteQuery(entry.category.summary).indexOf(normalizedQuery) !== -1;
+  }
+
   function renderFavoriteCard(entry, state, canReorder) {
     var stats = window.DMZApp.getUpgradeStats(entry.upgrade, state);
     var isCollapsed = shouldCollapseFavorite(entry.upgrade.id);
@@ -276,13 +292,20 @@
     }).join("");
   }
 
-  function renderFavoriteSection(state, isFavoritesFullscreen) {
+  function renderFavoriteSection(state, isFavoritesFullscreen, query) {
     var entries = state.favoriteUpgradeIds.map(function (upgradeId) {
       return window.DMZApp.getUpgradeEntry(upgradeId);
     }).filter(function (entry) {
       return Boolean(entry);
     });
-    var canReorder = isFavoritesFullscreen && entries.length > 1;
+    var normalizedQuery = isFavoritesFullscreen ? normalizeFavoriteQuery(query) : "";
+    var filteredEntries = normalizedQuery
+      ? entries.filter(function (entry) {
+          return favoriteEntryMatchesQuery(entry, normalizedQuery);
+        })
+      : entries;
+    var canReorder = isFavoritesFullscreen && filteredEntries.length > 1 && !normalizedQuery;
+    var meta;
 
     if (!entries.length) {
       return {
@@ -291,11 +314,24 @@
       };
     }
 
+    if (!filteredEntries.length) {
+      return {
+        meta: "0 favorites matched",
+        content: "<div class=\"empty-state\"><h3 class=\"empty-state__title\">No favorites match that search</h3><p class=\"empty-state__copy\">Try a broader term like a faction name, upgrade type, or objective keyword.</p></div>"
+      };
+    }
+
+    if (normalizedQuery) {
+      meta = filteredEntries.length + " of " + entries.length + " favorites matched";
+    } else {
+      meta = filteredEntries.length + (filteredEntries.length === 1 ? " favorite pinned" : " favorites pinned") + (canReorder ? " • Drag cards to reorder" : "");
+    }
+
     return {
-      meta: entries.length + (entries.length === 1 ? " favorite pinned" : " favorites pinned") + (canReorder ? " • Drag cards to reorder" : ""),
+      meta: meta,
       content: isFavoritesFullscreen
-        ? renderFavoriteFullscreenColumns(entries, state, canReorder)
-        : entries.map(function (entry) {
+        ? renderFavoriteFullscreenColumns(filteredEntries, state, canReorder)
+        : filteredEntries.map(function (entry) {
             return renderFavoriteCard(entry, state, canReorder);
           }).join("")
     };
@@ -307,6 +343,7 @@
     }
 
     var searchInput = document.getElementById("homeSearch");
+    var fullscreenSearchInput = document.getElementById("favoritesSearch");
     var meter = document.getElementById("overallMeter");
     var metrics = document.getElementById("metricGrid");
     var categoryGrid = document.getElementById("categoryGrid");
@@ -323,6 +360,23 @@
     var draggedFavoriteId = "";
     var dropTargetFavoriteId = "";
     var dropTargetInsertAfter = false;
+
+    function syncSearchInputs() {
+      if (searchInput && searchInput.value !== query) {
+        searchInput.value = query;
+      }
+
+      if (fullscreenSearchInput && fullscreenSearchInput.value !== query) {
+        fullscreenSearchInput.value = query;
+      }
+    }
+
+    function setQuery(nextQuery) {
+      query = nextQuery || "";
+      clearFavoriteDragState();
+      syncSearchInputs();
+      render();
+    }
 
     function syncFavoritesFullscreenButton() {
       if (!fullscreenButton) {
@@ -459,13 +513,14 @@
     function render() {
       var state = window.DMZStorage.getState();
       var stats = window.DMZApp.getOverallStats(state);
-      var favoriteState = renderFavoriteSection(state, isFavoritesFullscreen);
+      var favoriteState = renderFavoriteSection(state, isFavoritesFullscreen, query);
       var searchState = renderSearchMatches(query, state);
 
       window.DMZApp.renderMeter(meter, stats.percent, "overall completion");
       metrics.innerHTML = renderMetricGrid(stats);
       favoritesMeta.textContent = favoriteState.meta;
       favoritesGrid.innerHTML = favoriteState.content;
+      syncSearchInputs();
       syncFavoritesFullscreenState();
       Array.prototype.forEach.call(favoritesGrid.querySelectorAll(".favorite-card"), function (card) {
         card.addEventListener("toggle", function () {
@@ -479,9 +534,14 @@
     }
 
     searchInput.addEventListener("input", function (event) {
-      query = event.target.value;
-      render();
+      setQuery(event.target.value);
     });
+
+    if (fullscreenSearchInput) {
+      fullscreenSearchInput.addEventListener("input", function (event) {
+        setQuery(event.target.value);
+      });
+    }
 
     if (fullscreenButton) {
       fullscreenButton.addEventListener("click", function () {
