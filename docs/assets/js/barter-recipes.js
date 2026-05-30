@@ -222,13 +222,11 @@
   function computeStats(recipes) {
     var regionSet = Object.create(null);
     var ingredientSet = Object.create(null);
-    var ingredientUnits = 0;
 
     recipes.forEach(function (recipe) {
       regionSet[recipe.region] = true;
       recipe.ingredients.forEach(function (ingredient) {
         ingredientSet[ingredient.id] = true;
-        ingredientUnits += Number(ingredient.quantity) || 0;
       });
     });
 
@@ -236,7 +234,6 @@
       visibleRecipes: recipes.length,
       visibleRegions: Object.keys(regionSet).length,
       ingredientKinds: Object.keys(ingredientSet).length,
-      ingredientUnits: ingredientUnits,
       distinctRecipes: Object.keys(data.reduce(function (set, recipe) {
         set[recipe.id] = true;
         return set;
@@ -275,9 +272,9 @@
         detail: "How many exclusion zones are represented in the current board."
       },
       {
-        label: "Ingredient Units",
-        value: String(stats.ingredientUnits),
-        detail: stats.ingredientKinds + " unique ingredient types across visible recipes."
+        label: "Ingredient Types",
+        value: String(stats.ingredientKinds),
+        detail: "Distinct ingredient types across visible recipes."
       }
     ].map(function (item) {
       return "<article class=\"metric-card\">" +
