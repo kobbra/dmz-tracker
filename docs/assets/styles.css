@@ -1886,6 +1886,19 @@ body[data-page="barter-recipes"] .toolbar__group {
   gap: 0.7rem;
 }
 
+.recipe-card .upgrade-card__title-row {
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+.recipe-card .upgrade-card__title {
+  min-width: 0;
+  flex: 1 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .recipe-card .upgrade-card__chips {
   flex-wrap: nowrap;
   gap: 0.4rem;
