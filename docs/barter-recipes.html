@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Barter Recipes | DMZ Tracker</title>
+    <meta name="description" content="Browse DMZ barter recipes by region and ingredient from a static local reference page.">
+    <link rel="icon" type="image/png" href="./assets/images/dmz-logo-cropped.png">
+    <link rel="stylesheet" href="./assets/styles.css">
+    <script src="./assets/data/dmz-barter-recipes.js" defer></script>
+    <script src="./assets/js/shared.js" defer></script>
+    <script src="./assets/js/barter-recipes.js" defer></script>
+  </head>
+  <body data-page="barter-recipes">
+    <div class="site-shell">
+      <header class="site-header">
+        <div class="shell-inner site-header__bar">
+          <a class="brand" href="./index.html">
+            <div class="brand__mark"><img src="./assets/images/dmz-logo-cropped.png" alt=""></div>
+            <div>
+              <p class="brand__eyebrow">Local progress tracker</p>
+              <p class="brand__title">DMZ Upgrades</p>
+            </div>
+          </a>
+          <nav class="site-nav" aria-label="Primary">
+            <a class="site-nav__link" href="./index.html">Home</a>
+            <a class="site-nav__link" href="./stash.html">Stash</a>
+            <a class="site-nav__link" href="./weapons-locker.html">Weapons Locker</a>
+            <a class="site-nav__link" href="./bounty-board.html">Bounty Board</a>
+            <a class="site-nav__link is-active" href="./barter-recipes.html">Barter Recipes</a>
+            <a class="site-nav__link" href="./communications.html">Communications</a>
+            <a class="site-nav__link" href="./equipment.html">Equipment</a>
+          </nav>
+        </div>
+      </header>
+
+      <main class="page">
+        <div class="shell-inner">
+          <section class="hero barter-hero">
+            <div class="hero__grid">
+              <div>
+                <p class="eyebrow">Read-only field guide</p>
+                <h1 class="hero__title">Barter Recipes</h1>
+                <p class="hero__copy">Compare every known barter recipe across Al Mazrah, Ashika Island, and Vondel. Search by crafted item or ingredient, then open a card to see the exact quantities needed for that buy station craft.</p>
+              </div>
+              <aside class="hero__panel barter-hero__panel">
+                <p class="hero__panel-title">Coverage snapshot</p>
+                <p class="hero__panel-copy">Static local reference data with region-specific recipe variants and no progress tracking.</p>
+                <div id="barterHeroSummary" class="barter-hero__summary"></div>
+              </aside>
+            </div>
+            <div id="barterMetrics" class="metric-grid"></div>
+          </section>
+
+          <div class="toolbar barter-toolbar">
+            <div class="toolbar__group">
+              <label class="search-field" for="barterSearch">
+                <span class="search-field__icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Search barter recipes</span>
+                <input id="barterSearch" type="search" placeholder="Search barter recipes, ingredients, unlock notes, or regions">
+              </label>
+            </div>
+          </div>
+
+          <section class="panel barter-filters-panel">
+            <div class="panel__header">
+              <div>
+                <h2 class="section-heading__title">Region filters</h2>
+                <p class="section-heading__copy">Focus on one exclusion zone or compare all three at once.</p>
+              </div>
+              <p id="barterFilterMeta" class="panel__copy"></p>
+            </div>
+            <div id="barterRegionFilters" class="filter-chip-row" role="toolbar" aria-label="Barter recipe region filters"></div>
+          </section>
+
+          <section class="panel barter-recipes-panel">
+            <div class="panel__header">
+              <div>
+                <h2 class="section-heading__title">Recipe board</h2>
+                <p class="section-heading__copy">Cards stay collapsed by default, then expand to show ingredient counts and any unlock note.</p>
+              </div>
+              <div class="panel__actions">
+                <button id="toggleBarterCardsButton" class="settings-trigger toggle-details-button" type="button" aria-controls="barterGroups" aria-label="Expand all visible recipe cards" title="Expand all visible recipe cards" data-state="expand">
+                  <span class="settings-trigger__icon toggle-details-button__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                      <path class="toggle-details-button__icon-expand" d="M12 5.41 15.59 9 17 7.59 12 2.59 7 7.59 8.41 9 12 5.41Zm0 13.18L8.41 15 7 16.41l5 5 5-5L15.59 15 12 18.59Z"></path>
+                      <path class="toggle-details-button__icon-collapse" d="M7.56994 5.00001L6.50928 6.06067L11.9999 11.5536L17.4906 6.06067L16.43 5.00001L11.9999 9.43186L7.56994 5.00001ZM16.4298 19L17.4905 17.9394L11.9999 12.4465L6.5094 17.9394L7.57006 19L11.9999 14.5683L16.4298 19Z"></path>
+                    </svg>
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div id="barterGroups" class="group-stack"></div>
+          </section>
+
+          <noscript class="no-script">This reference page needs JavaScript to render the local barter dataset.</noscript>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <div class="shell-inner footer__inner">
+          <div>Barter recipes are served as local static reference data.</div>
+          <div><a href="./index.html">Return to the dashboard</a></div>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>
