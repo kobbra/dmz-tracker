@@ -1506,6 +1506,10 @@ body.is-favorites-fullscreen .favorites-panel__search {
   justify-content: center;
 }
 
+body.is-favorites-fullscreen .favorites-panel__search[hidden] {
+  display: none;
+}
+
 body.is-favorites-fullscreen .favorites-panel .match-grid {
   display: grid;
   grid-template-columns: repeat(var(--favorites-fullscreen-columns, 6), minmax(0, 1fr));
