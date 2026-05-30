@@ -196,6 +196,86 @@
     return false;
   }
 
+  function getFavoritesFullscreenColumnCount() {
+    if (window.innerWidth <= 640) {
+      return 2;
+    }
+
+    if (window.innerWidth <= 920) {
+      return 3;
+    }
+
+    return 6;
+  }
+
+  function renderFavoriteCard(entry, state, canReorder) {
+    var stats = window.DMZApp.getUpgradeStats(entry.upgrade, state);
+    var isCollapsed = shouldCollapseFavorite(entry.upgrade.id);
+    var unlockLabel = (entry.upgrade.unlock && entry.upgrade.unlock.name ? entry.upgrade.unlock.name : "DMZ") +
+      (entry.upgrade.unlock && entry.upgrade.unlock.level ? " " + entry.upgrade.unlock.level : "");
+    var preview = entry.upgrade.reward || entry.upgrade.tasks.slice(0, 2).map(function (task) {
+      return task.title;
+    }).join(" | ");
+
+    return "<details class=\"match-card favorite-card\" data-upgrade-id=\"" + entry.upgrade.id + "\"" + (canReorder ? " draggable=\"true\"" : "") + (isCollapsed ? "" : " open") + ">" +
+      "<summary class=\"favorite-card__summary\">" +
+        "<div class=\"favorite-card__summary-main\">" +
+          "<div class=\"match-card__meta\">" +
+            "<span class=\"chip chip--accent\">" + window.DMZApp.escapeHtml(entry.category.title) + "</span>" +
+            "<span class=\"chip\">" + window.DMZApp.escapeHtml(unlockLabel) + "</span>" +
+          "</div>" +
+          "<div class=\"upgrade-card__title-row\">" +
+            "<h3 class=\"upgrade-card__title\">" + window.DMZApp.escapeHtml(entry.upgrade.title) + "</h3>" +
+            window.DMZApp.renderFavoriteToggle(entry.upgrade.id, true) +
+          "</div>" +
+          "<p class=\"favorite-card__summary-copy\">" + window.DMZApp.escapeHtml(preview) + "</p>" +
+          "<div class=\"favorite-card__summary-progress\">" +
+            window.DMZApp.renderProgressTrack(stats.percent, stats.completedTasks + "/" + stats.totalTasks + " tasks", window.DMZApp.formatPercent(stats.percent), true) +
+          "</div>" +
+        "</div>" +
+        "<div class=\"favorite-card__summary-actions\">" +
+          (canReorder
+            ? "<button class=\"favorite-card__drag-handle\" type=\"button\" data-action=\"drag-handle\" aria-label=\"Drag to reorder favorite\" title=\"Drag to reorder favorite\">" +
+                "<span class=\"favorite-card__drag-handle-icon\" aria-hidden=\"true\"></span>" +
+              "</button>"
+            : "") +
+          "<span class=\"upgrade-card__collapse\" aria-hidden=\"true\">" +
+            "<span class=\"upgrade-card__collapse-icon\" aria-hidden=\"true\"></span>" +
+          "</span>" +
+        "</div>" +
+      "</summary>" +
+      "<div class=\"favorite-card__details\">" +
+        "<ul class=\"task-list favorite-card__tasks\">" +
+          entry.upgrade.tasks.map(function (task) {
+            return window.DMZApp.renderTaskControlRow(task, state);
+          }).join("") +
+        "</ul>" +
+      "</div>" +
+    "</details>";
+  }
+
+  function renderFavoriteFullscreenColumns(entries, state, canReorder) {
+    var columnCount = Math.min(getFavoritesFullscreenColumnCount(), entries.length);
+    var columns = [];
+    var baseItemsPerColumn = Math.floor(entries.length / columnCount);
+    var extraItems = entries.length % columnCount;
+    var columnIndex;
+    var startIndex = 0;
+    var columnSize;
+
+    for (columnIndex = 0; columnIndex < columnCount; columnIndex += 1) {
+      columnSize = baseItemsPerColumn + (columnIndex < extraItems ? 1 : 0);
+      columns.push(entries.slice(startIndex, startIndex + columnSize));
+      startIndex += columnSize;
+    }
+
+    return columns.map(function (columnEntries) {
+      return "<div class=\"favorites-column\">" + columnEntries.map(function (entry) {
+        return renderFavoriteCard(entry, state, canReorder);
+      }).join("") + "</div>";
+    }).join("");
+  }
+
   function renderFavoriteSection(state, isFavoritesFullscreen) {
     var entries = state.favoriteUpgradeIds.map(function (upgradeId) {
       return window.DMZApp.getUpgradeEntry(upgradeId);
@@ -213,52 +293,11 @@
 
     return {
       meta: entries.length + (entries.length === 1 ? " favorite pinned" : " favorites pinned") + (canReorder ? " • Drag cards to reorder" : ""),
-      content: entries.map(function (entry) {
-        var meta = window.DMZApp.getCategoryMeta(entry.category.slug);
-        var stats = window.DMZApp.getUpgradeStats(entry.upgrade, state);
-        var isCollapsed = shouldCollapseFavorite(entry.upgrade.id);
-        var unlockLabel = (entry.upgrade.unlock && entry.upgrade.unlock.name ? entry.upgrade.unlock.name : "DMZ") +
-          (entry.upgrade.unlock && entry.upgrade.unlock.level ? " " + entry.upgrade.unlock.level : "");
-        var preview = entry.upgrade.reward || entry.upgrade.tasks.slice(0, 2).map(function (task) {
-          return task.title;
-        }).join(" | ");
-
-        return "<details class=\"match-card favorite-card\" data-upgrade-id=\"" + entry.upgrade.id + "\"" + (canReorder ? " draggable=\"true\"" : "") + (isCollapsed ? "" : " open") + ">" +
-          "<summary class=\"favorite-card__summary\">" +
-            "<div class=\"favorite-card__summary-main\">" +
-              "<div class=\"match-card__meta\">" +
-                "<span class=\"chip chip--accent\">" + window.DMZApp.escapeHtml(entry.category.title) + "</span>" +
-                "<span class=\"chip\">" + window.DMZApp.escapeHtml(unlockLabel) + "</span>" +
-              "</div>" +
-              "<div class=\"upgrade-card__title-row\">" +
-                "<h3 class=\"upgrade-card__title\">" + window.DMZApp.escapeHtml(entry.upgrade.title) + "</h3>" +
-                window.DMZApp.renderFavoriteToggle(entry.upgrade.id, true) +
-              "</div>" +
-              "<p class=\"favorite-card__summary-copy\">" + window.DMZApp.escapeHtml(preview) + "</p>" +
-              "<div class=\"favorite-card__summary-progress\">" +
-                window.DMZApp.renderProgressTrack(stats.percent, stats.completedTasks + "/" + stats.totalTasks + " tasks", window.DMZApp.formatPercent(stats.percent), true) +
-              "</div>" +
-            "</div>" +
-            "<div class=\"favorite-card__summary-actions\">" +
-              (canReorder
-                ? "<button class=\"favorite-card__drag-handle\" type=\"button\" data-action=\"drag-handle\" aria-label=\"Drag to reorder favorite\" title=\"Drag to reorder favorite\">" +
-                    "<span class=\"favorite-card__drag-handle-icon\" aria-hidden=\"true\"></span>" +
-                  "</button>"
-                : "") +
-              "<span class=\"upgrade-card__collapse\" aria-hidden=\"true\">" +
-                "<span class=\"upgrade-card__collapse-icon\" aria-hidden=\"true\"></span>" +
-              "</span>" +
-            "</div>" +
-          "</summary>" +
-          "<div class=\"favorite-card__details\">" +
-            "<ul class=\"task-list favorite-card__tasks\">" +
-              entry.upgrade.tasks.map(function (task) {
-                return window.DMZApp.renderTaskControlRow(task, state);
-              }).join("") +
-            "</ul>" +
-          "</div>" +
-        "</details>";
-      }).join("")
+      content: isFavoritesFullscreen
+        ? renderFavoriteFullscreenColumns(entries, state, canReorder)
+        : entries.map(function (entry) {
+            return renderFavoriteCard(entry, state, canReorder);
+          }).join("")
     };
   }
 
@@ -278,6 +317,7 @@
     var resultsMeta = document.getElementById("searchResultsMeta");
     var resultsGrid = document.getElementById("searchResults");
     var query = "";
+    var fullscreenColumnCount = getFavoritesFullscreenColumnCount();
     var isFavoritesFullscreen = false;
     var armedFavoriteId = "";
     var draggedFavoriteId = "";
@@ -340,10 +380,6 @@
 
     function shouldInsertAfter(card, event) {
       var rect = card.getBoundingClientRect();
-
-      if (favoritesGrid.clientWidth >= 960) {
-        return event.clientX > rect.left + (rect.width / 2);
-      }
 
       return event.clientY > rect.top + (rect.height / 2);
     }
@@ -456,6 +492,20 @@
     document.addEventListener("mouseup", function () {
       if (!draggedFavoriteId) {
         armedFavoriteId = "";
+      }
+    });
+
+    window.addEventListener("resize", function () {
+      var nextColumnCount = getFavoritesFullscreenColumnCount();
+
+      if (nextColumnCount === fullscreenColumnCount) {
+        return;
+      }
+
+      fullscreenColumnCount = nextColumnCount;
+
+      if (isFavoritesFullscreen) {
+        render();
       }
     });
 
