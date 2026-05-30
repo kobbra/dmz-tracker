@@ -240,7 +240,6 @@ body.is-favorites-fullscreen .page {
   padding: 1.2rem 0 1.5rem;
 }
 
-body.is-favorites-fullscreen .site-header .shell-inner,
 body.is-favorites-fullscreen .page > .shell-inner {
   width: calc(100vw - 1rem);
   max-width: none;
@@ -480,25 +479,7 @@ body[data-page="home"] .toolbar {
 }
 
 body.is-favorites-fullscreen .toolbar {
-  position: sticky;
-  top: calc(var(--header-height) + 0.9rem);
-  z-index: 12;
-  margin-top: 0;
-  margin-bottom: 1rem;
-  padding: 0.9rem 1rem;
-  border-radius: calc(var(--radius-md) + 2px);
-  background: rgba(31, 36, 46, 0.78);
-  border: 1px solid rgba(136, 192, 208, 0.16);
-  box-shadow: var(--shadow-md);
-  backdrop-filter: blur(18px);
-}
-
-body.is-favorites-fullscreen .toolbar__group:first-child {
   display: none;
-}
-
-body.is-favorites-fullscreen .toolbar__group:last-child {
-  margin-left: auto;
 }
 
 .toolbar__group {
@@ -1129,6 +1110,22 @@ body.has-modal-open {
   margin-bottom: 1rem;
 }
 
+.panel__header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.85rem;
+  margin-left: auto;
+}
+
+.panel__actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
 .match-grid,
 .group-stack {
   display: grid;
@@ -1286,6 +1283,10 @@ body.is-favorites-fullscreen .favorites-panel {
 body.is-favorites-fullscreen .favorites-panel .panel__header {
   align-items: flex-end;
   gap: 1rem;
+}
+
+body.is-favorites-fullscreen .favorites-panel .panel__header-actions {
+  align-items: flex-start;
 }
 
 body.is-favorites-fullscreen .favorites-panel .match-grid {
@@ -1993,7 +1994,6 @@ body[data-page="category"] .group-card {
     padding-top: 0.85rem;
   }
 
-  body.is-favorites-fullscreen .site-header .shell-inner,
   body.is-favorites-fullscreen .page > .shell-inner {
     width: calc(100vw - 1rem);
   }
@@ -2009,6 +2009,11 @@ body[data-page="category"] .group-card {
 
   body.is-favorites-fullscreen .favorites-panel .panel__header {
     align-items: start;
+  }
+
+  .panel__header-actions {
+    width: 100%;
+    justify-content: space-between;
   }
 
   body.is-favorites-fullscreen .favorites-panel .match-grid {
