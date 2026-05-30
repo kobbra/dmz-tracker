@@ -608,8 +608,8 @@ body[data-page="category"] .search-field {
 .favorites-panel .panel__actions .settings-trigger,
 .category-groups-panel .panel__actions .settings-trigger {
   border: 0;
-  width: 2.8rem;
-  height: 2.8rem;
+  width: 2.35rem;
+  height: 2.35rem;
   flex: 0 0 auto;
   border-radius: 999px;
   display: grid;
@@ -1291,7 +1291,7 @@ body.is-favorites-fullscreen #favoritesLayoutButton {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.12rem;
 }
 
 .match-grid,
