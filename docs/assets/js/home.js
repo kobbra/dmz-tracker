@@ -363,6 +363,7 @@
     var categoryGrid = document.getElementById("categoryGrid");
     var favoritesMeta = document.getElementById("favoritesMeta");
     var favoritesGrid = document.getElementById("favoritesGrid");
+    var favoritesToggleAllButton = document.getElementById("favoritesToggleAllButton");
     var fullscreenButton = document.getElementById("favoritesFullscreenButton");
     var fullscreenLayoutButton = document.getElementById("favoritesLayoutButton");
     var settingsButton = document.getElementById("settingsButton");
@@ -533,6 +534,43 @@
       });
     }
 
+    function getVisibleFavoriteCards() {
+      return favoritesGrid.querySelectorAll(".favorite-card[data-upgrade-id]");
+    }
+
+    function areAllVisibleFavoritesExpanded() {
+      var cards = getVisibleFavoriteCards();
+
+      return cards.length > 0 && Array.prototype.every.call(cards, function (card) {
+        return card.open;
+      });
+    }
+
+    function syncFavoritesToggleAllButton() {
+      var hasCards;
+      var shouldCollapse;
+
+      if (!favoritesToggleAllButton) {
+        return;
+      }
+
+      hasCards = getVisibleFavoriteCards().length > 0;
+      shouldCollapse = hasCards && areAllVisibleFavoritesExpanded();
+      favoritesToggleAllButton.disabled = !hasCards;
+      favoritesToggleAllButton.textContent = shouldCollapse ? "Collapse all" : "Expand all";
+      favoritesToggleAllButton.setAttribute("aria-label", (shouldCollapse ? "Collapse" : "Expand") + " all visible favorite cards");
+      favoritesToggleAllButton.title = shouldCollapse ? "Collapse all visible favorite cards" : "Expand all visible favorite cards";
+    }
+
+    function setAllVisibleFavoritesExpanded(shouldExpand) {
+      Array.prototype.forEach.call(getVisibleFavoriteCards(), function (card) {
+        collapsedFavoriteIds[card.dataset.upgradeId] = !shouldExpand;
+        card.open = shouldExpand;
+      });
+
+      syncFavoritesToggleAllButton();
+    }
+
     function clearFavoriteDragClasses() {
       Array.prototype.forEach.call(favoritesGrid.querySelectorAll(".favorite-card"), function (card) {
         card.classList.remove("is-dragging", "is-drop-before", "is-drop-after");
@@ -677,8 +715,10 @@
       Array.prototype.forEach.call(favoritesGrid.querySelectorAll(".favorite-card"), function (card) {
         card.addEventListener("toggle", function () {
           collapsedFavoriteIds[card.dataset.upgradeId] = !card.open;
+          syncFavoritesToggleAllButton();
         });
       });
+      syncFavoritesToggleAllButton();
       categoryGrid.innerHTML = renderCategoryCards(homeQuery, state);
       resultsSection.hidden = searchState.hidden;
       resultsMeta.textContent = searchState.meta;
@@ -698,6 +738,12 @@
     if (fullscreenButton) {
       fullscreenButton.addEventListener("click", function () {
         setFavoritesFullscreen(!isFavoritesFullscreen);
+      });
+    }
+
+    if (favoritesToggleAllButton) {
+      favoritesToggleAllButton.addEventListener("click", function () {
+        setAllVisibleFavoritesExpanded(!areAllVisibleFavoritesExpanded());
       });
     }
 

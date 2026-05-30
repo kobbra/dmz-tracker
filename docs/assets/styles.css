@@ -605,6 +605,16 @@ body[data-page="category"] .search-field {
   font-size: 0.76rem;
 }
 
+.toggle-details-button {
+  white-space: nowrap;
+}
+
+.toggle-details-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+  pointer-events: none;
+}
+
 body.has-modal-open {
   overflow: hidden;
 }

@@ -73,15 +73,15 @@
   function shouldCollapseUpgrade(upgradeId, query) {
     var hash = window.location.hash ? window.location.hash.slice(1) : "";
 
-    if (query) {
-      return false;
-    }
-
     if (Object.prototype.hasOwnProperty.call(collapsedUpgradeIds, upgradeId)) {
       return collapsedUpgradeIds[upgradeId];
     }
 
     if (hash === upgradeId) {
+      return false;
+    }
+
+    if (query) {
       return false;
     }
 
@@ -138,6 +138,7 @@
     var filterMeta = document.getElementById("filterMeta");
     var groups = document.getElementById("categoryGroups");
     var searchInput = document.getElementById("categorySearch");
+    var expandAllButton = document.getElementById("toggleCategoryCardsButton");
     var lastStatsKey = "";
     var query = "";
 
@@ -157,6 +158,43 @@
         stats.totalTasks,
         stats.percent
       ].join("|");
+    }
+
+    function getVisibleUpgradeCards() {
+      return groups.querySelectorAll(".upgrade-card[id]");
+    }
+
+    function areAllVisibleUpgradeCardsExpanded() {
+      var cards = getVisibleUpgradeCards();
+
+      return cards.length > 0 && Array.prototype.every.call(cards, function (card) {
+        return card.open;
+      });
+    }
+
+    function syncExpandAllButton() {
+      var hasCards;
+      var shouldCollapse;
+
+      if (!expandAllButton) {
+        return;
+      }
+
+      hasCards = getVisibleUpgradeCards().length > 0;
+      shouldCollapse = hasCards && areAllVisibleUpgradeCardsExpanded();
+      expandAllButton.disabled = !hasCards;
+      expandAllButton.textContent = shouldCollapse ? "Collapse all" : "Expand all";
+      expandAllButton.setAttribute("aria-label", (shouldCollapse ? "Collapse" : "Expand") + " all visible upgrade cards");
+      expandAllButton.title = shouldCollapse ? "Collapse all visible upgrade cards" : "Expand all visible upgrade cards";
+    }
+
+    function setAllVisibleUpgradeCardsExpanded(shouldExpand) {
+      Array.prototype.forEach.call(getVisibleUpgradeCards(), function (card) {
+        collapsedUpgradeIds[card.id] = !shouldExpand;
+        card.open = shouldExpand;
+      });
+
+      syncExpandAllButton();
     }
 
     function render() {
@@ -179,8 +217,10 @@
       Array.prototype.forEach.call(groups.querySelectorAll(".upgrade-card"), function (card) {
         card.addEventListener("toggle", function () {
           collapsedUpgradeIds[card.id] = !card.open;
+          syncExpandAllButton();
         });
       });
+      syncExpandAllButton();
       window.DMZApp.highlightHashTarget();
     }
 
@@ -233,6 +273,12 @@
       query = event.target.value;
       render();
     });
+
+    if (expandAllButton) {
+      expandAllButton.addEventListener("click", function () {
+        setAllVisibleUpgradeCardsExpanded(!areAllVisibleUpgradeCardsExpanded());
+      });
+    }
 
     window.addEventListener("hashchange", window.DMZApp.highlightHashTarget);
     window.DMZStorage.subscribe(render);
