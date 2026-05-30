@@ -240,8 +240,10 @@ body.is-favorites-fullscreen .page {
   padding: 1.2rem 0 1.5rem;
 }
 
+body.is-favorites-fullscreen .site-header .shell-inner,
 body.is-favorites-fullscreen .page > .shell-inner {
-  width: min(1920px, calc(100vw - 1rem));
+  width: calc(100vw - 1rem);
+  max-width: none;
 }
 
 body.is-favorites-fullscreen .page > .shell-inner > section:not(.favorites-panel) {
@@ -1991,8 +1993,9 @@ body[data-page="category"] .group-card {
     padding-top: 0.85rem;
   }
 
+  body.is-favorites-fullscreen .site-header .shell-inner,
   body.is-favorites-fullscreen .page > .shell-inner {
-    width: min(100vw - 1rem, 1920px);
+    width: calc(100vw - 1rem);
   }
 
   body.is-favorites-fullscreen .toolbar {
