@@ -1766,20 +1766,6 @@ body.is-favorites-fullscreen .favorite-card.is-drop-after::after {
   gap: 1.1rem;
 }
 
-body[data-page="barter-recipes"] .toolbar {
-  grid-template-columns: minmax(0, 1fr);
-  align-items: center;
-  gap: 1.25rem 1.5rem;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-  padding-inline: 0.15rem;
-}
-
-body[data-page="barter-recipes"] .toolbar__group {
-  width: 100%;
-  min-width: 0;
-}
-
 .barter-hero__summary {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1815,6 +1801,7 @@ body[data-page="barter-recipes"] .toolbar__group {
 }
 
 .barter-filters-panel {
+  margin-top: 1.5rem;
   margin-bottom: 1rem;
 }
 
@@ -1822,6 +1809,14 @@ body[data-page="barter-recipes"] .toolbar__group {
 .barter-recipes-panel .panel__header {
   align-items: flex-start;
   margin-bottom: 1.15rem;
+}
+
+.barter-filters-panel__search {
+  margin-top: 1rem;
+}
+
+.barter-filters-panel__search .search-field {
+  width: min(100%, 360px);
 }
 
 .barter-filters-panel #barterFilterMeta {
@@ -2442,10 +2437,6 @@ body[data-page="category"] .group-card {
 
   body[data-page="home"] .toolbar__group:last-child {
     justify-self: end;
-  }
-
-  body[data-page="barter-recipes"] .toolbar__group {
-    width: auto;
   }
 
   .site-header__bar {
