@@ -1763,6 +1763,10 @@ body.is-favorites-fullscreen .favorite-card.is-drop-after::after {
 body[data-page="barter-recipes"] .toolbar {
   grid-template-columns: minmax(0, 1fr);
   align-items: center;
+  gap: 1.25rem 1.5rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  padding-inline: 0.15rem;
 }
 
 body[data-page="barter-recipes"] .toolbar__group {
@@ -1802,6 +1806,10 @@ body[data-page="barter-recipes"] .toolbar__group {
 .barter-filters-panel,
 .barter-recipes-panel {
   padding: 1.35rem 1.4rem 1.45rem;
+}
+
+.barter-filters-panel {
+  margin-bottom: 1rem;
 }
 
 .barter-filters-panel .panel__header,
