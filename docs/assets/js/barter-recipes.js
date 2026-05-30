@@ -3,7 +3,7 @@
   var collapsedRecipeKeys = Object.create(null);
   var REGION_META = {
     all: {
-      label: "All Regions",
+      label: "All Maps",
       copy: "Compare shared crafts and region-specific variants side by side."
     },
     "al-mazrah": {
@@ -266,12 +266,12 @@
       {
         label: "Recipes Shown",
         value: stats.visibleRecipes + " / " + data.length,
-        detail: "Cards after the current search and region filters."
+        detail: "Cards after the current search and map filters."
       },
       {
-        label: "Regions In View",
+        label: "Maps In View",
         value: String(stats.visibleRegions),
-        detail: "How many exclusion zones are represented in the current board."
+        detail: "How many maps are represented in the current board."
       },
       {
         label: "Ingredient Types",
