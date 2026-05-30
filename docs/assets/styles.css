@@ -474,8 +474,12 @@ body[data-page="home"] .hero__panel .meter {
   margin-top: 1.5rem;
 }
 
-body[data-page="home"] .toolbar {
-  margin-bottom: 1.35rem;
+body[data-page="home"] .toolbar,
+body[data-page="category"] .toolbar {
+  gap: 1.25rem 1.5rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  padding-inline: 0.15rem;
 }
 
 body.is-favorites-fullscreen .toolbar {
@@ -489,13 +493,7 @@ body.is-favorites-fullscreen .toolbar {
   align-items: center;
 }
 
-body[data-page="category"] .toolbar {
-  gap: 1.25rem 1.5rem;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-  padding-inline: 0.15rem;
-}
-
+body[data-page="home"] .toolbar__group,
 body[data-page="category"] .toolbar__group {
   gap: 1rem;
 }
