@@ -1141,10 +1141,14 @@ body.has-modal-open {
   margin-bottom: 1.45rem;
 }
 
+.favorites-panel #favoritesMeta {
+  margin-top: 0;
+  white-space: nowrap;
+}
+
 .favorites-panel .panel__header-actions {
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.45rem;
+  align-items: center;
+  gap: 0.65rem;
   text-align: right;
 }
 
@@ -1298,7 +1302,7 @@ body.is-favorites-fullscreen .favorites-panel .panel__header {
 }
 
 body.is-favorites-fullscreen .favorites-panel .panel__header-actions {
-  align-items: flex-end;
+  align-items: center;
 }
 
 body.is-favorites-fullscreen .favorites-panel .match-grid {
@@ -2025,9 +2029,8 @@ body[data-page="category"] .group-card {
 
   .panel__header-actions {
     width: 100%;
-    flex-direction: row;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
   }
 
   body.is-favorites-fullscreen .favorites-panel .match-grid {
