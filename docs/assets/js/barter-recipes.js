@@ -58,6 +58,7 @@
     "rebreather": "./assets/images/dmz/rewards/unlock_rebreather.png",
     "armor-box": "./assets/images/dmz/rewards/unlock_armor_box.png",
     "self-revive-kit": "./assets/images/dmz/rewards/unlock_self_revive.png",
+    "gold-fish": "./assets/images/dmz/rewards/gold_fish.png",
     "durable-gas-mask": "./assets/images/dmz/items/durable_gasmask.png",
     "fortress-key": "./assets/images/dmz/items/stronghold_key.png",
     "encrypted-key": "./assets/images/dmz/items/dmz_key.png",
@@ -109,6 +110,7 @@
     "three-plate-armor-vest": "./assets/images/dmz/items/armor_plate_carrier.png",
     toothpaste: "./assets/images/dmz/items/toothpaste.png",
     "video-cassette-recorder": "./assets/images/dmz/items/VCR.png",
+    watch: "./assets/images/dmz/items/watch.png",
     "vintage-wine": "./assets/images/dmz/items/vintage_wine.png"
   };
 
