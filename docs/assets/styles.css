@@ -1273,6 +1273,20 @@ body.is-favorites-fullscreen #favoritesLayoutButton {
   justify-content: flex-end;
 }
 
+.category-groups-panel {
+  padding: 1.35rem 1.4rem 1.45rem;
+}
+
+.category-groups-panel .panel__header {
+  align-items: center;
+  margin-bottom: 1.15rem;
+}
+
+.category-groups-panel #filterMeta {
+  margin-top: 0;
+  white-space: nowrap;
+}
+
 .favorites-panel__search {
   display: none;
   flex: 1 1 380px;

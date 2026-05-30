@@ -363,6 +363,7 @@
     var categoryGrid = document.getElementById("categoryGrid");
     var favoritesMeta = document.getElementById("favoritesMeta");
     var favoritesGrid = document.getElementById("favoritesGrid");
+    var favoritesPanelActions = document.getElementById("favoritesPanelActions");
     var favoritesToggleAllButton = document.getElementById("favoritesToggleAllButton");
     var fullscreenButton = document.getElementById("favoritesFullscreenButton");
     var fullscreenLayoutButton = document.getElementById("favoritesLayoutButton");
