@@ -1876,8 +1876,31 @@ body[data-page="barter-recipes"] .toolbar__group {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
+.recipe-card .upgrade-card__summary {
+  position: relative;
+  display: block;
+  padding-right: 2.85rem;
+}
+
 .recipe-card .upgrade-card__summary-main {
   gap: 0.7rem;
+}
+
+.recipe-card .upgrade-card__chips {
+  flex-wrap: nowrap;
+  gap: 0.4rem;
+}
+
+.recipe-card .upgrade-card__collapse {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+body[data-page="barter-recipes"] .recipe-card .chip {
+  padding: 0.34rem 0.56rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
 }
 
 .barter-ingredient-list {
