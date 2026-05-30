@@ -1,6 +1,10 @@
 (function () {
   var STORAGE_KEY = "dmz-tracker:v1:task-counts";
   var TEST_KEY = "dmz-tracker:storage-check";
+  var DEFAULT_FAVORITES_LAYOUT = {
+    fullscreenColumns: 6,
+    showSearch: true
+  };
   var storageAvailable = checkStorage();
   var state = loadState();
 
@@ -14,10 +18,35 @@
     }
   }
 
+  function sanitizeFavoritesLayout(value) {
+    var next = {
+      fullscreenColumns: DEFAULT_FAVORITES_LAYOUT.fullscreenColumns,
+      showSearch: DEFAULT_FAVORITES_LAYOUT.showSearch
+    };
+    var fullscreenColumns;
+
+    if (!value || typeof value !== "object") {
+      return next;
+    }
+
+    fullscreenColumns = Math.floor(Number(value.fullscreenColumns) || 0);
+
+    if (Number.isFinite(fullscreenColumns) && fullscreenColumns >= 2 && fullscreenColumns <= 8) {
+      next.fullscreenColumns = fullscreenColumns;
+    }
+
+    if (typeof value.showSearch === "boolean") {
+      next.showSearch = value.showSearch;
+    }
+
+    return next;
+  }
+
   function sanitizeState(value) {
     var next = {
       taskCounts: {},
-      favoriteUpgradeIds: []
+      favoriteUpgradeIds: [],
+      favoritesLayout: sanitizeFavoritesLayout()
     };
 
     if (!value || typeof value !== "object") {
@@ -42,6 +71,10 @@
 
         next.favoriteUpgradeIds.push(upgradeId);
       });
+    }
+
+    if (value.favoritesLayout && typeof value.favoritesLayout === "object") {
+      next.favoritesLayout = sanitizeFavoritesLayout(value.favoritesLayout);
     }
 
     return next;
@@ -82,8 +115,13 @@
   function getState() {
     return {
       taskCounts: Object.assign({}, state.taskCounts),
-      favoriteUpgradeIds: state.favoriteUpgradeIds.slice()
+      favoriteUpgradeIds: state.favoriteUpgradeIds.slice(),
+      favoritesLayout: Object.assign({}, state.favoritesLayout)
     };
+  }
+
+  function getFavoritesLayoutSettings() {
+    return Object.assign({}, state.favoritesLayout);
   }
 
   function getTaskCount(taskId) {
@@ -180,6 +218,25 @@
     emitChange();
   }
 
+  function setFavoritesLayoutSettings(nextSettings) {
+    var nextLayout;
+
+    if (!nextSettings || typeof nextSettings !== "object") {
+      return;
+    }
+
+    nextLayout = sanitizeFavoritesLayout(Object.assign({}, state.favoritesLayout, nextSettings));
+
+    if (nextLayout.fullscreenColumns === state.favoritesLayout.fullscreenColumns &&
+        nextLayout.showSearch === state.favoritesLayout.showSearch) {
+      return;
+    }
+
+    state.favoritesLayout = nextLayout;
+    persist();
+    emitChange();
+  }
+
   function reset() {
     state = sanitizeState();
 
@@ -222,6 +279,8 @@
     isFavoriteUpgrade: isFavoriteUpgrade,
     toggleFavoriteUpgrade: toggleFavoriteUpgrade,
     setFavoriteUpgradeOrder: setFavoriteUpgradeOrder,
+    getFavoritesLayoutSettings: getFavoritesLayoutSettings,
+    setFavoritesLayoutSettings: setFavoritesLayoutSettings,
     reset: reset,
     replaceState: replaceState,
     subscribe: subscribe,

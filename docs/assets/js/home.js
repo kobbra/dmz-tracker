@@ -196,16 +196,28 @@
     return false;
   }
 
-  function getFavoritesFullscreenColumnCount() {
+  function clampFavoritesFullscreenColumns(value) {
+    var columns = Math.floor(Number(value) || 0);
+
+    if (!Number.isFinite(columns)) {
+      return 6;
+    }
+
+    return Math.max(2, Math.min(8, columns));
+  }
+
+  function getFavoritesFullscreenColumnCount(preferredColumns) {
+    var columns = clampFavoritesFullscreenColumns(preferredColumns);
+
     if (window.innerWidth <= 640) {
-      return 2;
+      return Math.min(columns, 2);
     }
 
     if (window.innerWidth <= 920) {
-      return 3;
+      return Math.min(columns, 3);
     }
 
-    return 6;
+    return columns;
   }
 
   function normalizeFavoriteQuery(value) {
@@ -270,16 +282,16 @@
     "</details>";
   }
 
-  function renderFavoriteFullscreenColumns(entries, state, canReorder) {
-    var columnCount = Math.min(getFavoritesFullscreenColumnCount(), entries.length);
+  function renderFavoriteFullscreenColumns(entries, state, canReorder, columnCount) {
+    var resolvedColumnCount = Math.min(Math.max(1, Number(columnCount) || 1), entries.length);
     var columns = [];
-    var baseItemsPerColumn = Math.floor(entries.length / columnCount);
-    var extraItems = entries.length % columnCount;
+    var baseItemsPerColumn = Math.floor(entries.length / resolvedColumnCount);
+    var extraItems = entries.length % resolvedColumnCount;
     var columnIndex;
     var startIndex = 0;
     var columnSize;
 
-    for (columnIndex = 0; columnIndex < columnCount; columnIndex += 1) {
+    for (columnIndex = 0; columnIndex < resolvedColumnCount; columnIndex += 1) {
       columnSize = baseItemsPerColumn + (columnIndex < extraItems ? 1 : 0);
       columns.push(entries.slice(startIndex, startIndex + columnSize));
       startIndex += columnSize;
@@ -292,13 +304,14 @@
     }).join("");
   }
 
-  function renderFavoriteSection(state, isFavoritesFullscreen, query) {
+  function renderFavoriteSection(state, isFavoritesFullscreen, query, favoritesLayout) {
     var entries = state.favoriteUpgradeIds.map(function (upgradeId) {
       return window.DMZApp.getUpgradeEntry(upgradeId);
     }).filter(function (entry) {
       return Boolean(entry);
     });
     var normalizedQuery = isFavoritesFullscreen ? normalizeFavoriteQuery(query) : "";
+    var fullscreenColumnCount = getFavoritesFullscreenColumnCount(favoritesLayout && favoritesLayout.fullscreenColumns);
     var filteredEntries = normalizedQuery
       ? entries.filter(function (entry) {
           return favoriteEntryMatchesQuery(entry, normalizedQuery);
@@ -330,7 +343,7 @@
     return {
       meta: meta,
       content: isFavoritesFullscreen
-        ? renderFavoriteFullscreenColumns(filteredEntries, state, canReorder)
+        ? renderFavoriteFullscreenColumns(filteredEntries, state, canReorder, fullscreenColumnCount)
         : filteredEntries.map(function (entry) {
             return renderFavoriteCard(entry, state, canReorder);
           }).join("")
@@ -343,6 +356,7 @@
     }
 
     var searchInput = document.getElementById("homeSearch");
+    var fullscreenSearch = document.querySelector(".favorites-panel__search");
     var fullscreenSearchInput = document.getElementById("favoritesSearch");
     var meter = document.getElementById("overallMeter");
     var metrics = document.getElementById("metricGrid");
@@ -350,32 +364,139 @@
     var favoritesMeta = document.getElementById("favoritesMeta");
     var favoritesGrid = document.getElementById("favoritesGrid");
     var fullscreenButton = document.getElementById("favoritesFullscreenButton");
+    var fullscreenLayoutButton = document.getElementById("favoritesLayoutButton");
+    var settingsButton = document.getElementById("settingsButton");
     var resultsSection = document.getElementById("searchResultsSection");
     var resultsMeta = document.getElementById("searchResultsMeta");
     var resultsGrid = document.getElementById("searchResults");
-    var query = "";
-    var fullscreenColumnCount = getFavoritesFullscreenColumnCount();
+    var homeQuery = "";
+    var favoriteQuery = "";
+    var fullscreenColumnCount = getFavoritesFullscreenColumnCount(window.DMZStorage.getFavoritesLayoutSettings().fullscreenColumns);
     var isFavoritesFullscreen = false;
     var armedFavoriteId = "";
     var draggedFavoriteId = "";
     var dropTargetFavoriteId = "";
     var dropTargetInsertAfter = false;
+    var layoutDialog = fullscreenLayoutButton ? createFavoritesLayoutDialog() : null;
+    var layoutColumnsInput = layoutDialog ? layoutDialog.querySelector("#favoritesLayoutColumns") : null;
+    var layoutSearchToggle = layoutDialog ? layoutDialog.querySelector("#favoritesLayoutSearchToggle") : null;
+    var layoutPreviousFocus = null;
 
-    function syncSearchInputs() {
-      if (searchInput && searchInput.value !== query) {
-        searchInput.value = query;
-      }
+    function createFavoritesLayoutDialog() {
+      var dialog = document.createElement("dialog");
 
-      if (fullscreenSearchInput && fullscreenSearchInput.value !== query) {
-        fullscreenSearchInput.value = query;
+      dialog.id = "favoritesLayoutDialog";
+      dialog.className = "settings-dialog layout-settings-dialog";
+      dialog.hidden = true;
+      dialog.setAttribute("aria-labelledby", "favoritesLayoutDialogTitle");
+      dialog.innerHTML = "" +
+        '<div class="settings-dialog__panel">' +
+          '<div class="settings-dialog__header">' +
+            '<div>' +
+              '<p class="settings-dialog__eyebrow">Fullscreen layout</p>' +
+              '<h2 id="favoritesLayoutDialogTitle" class="settings-dialog__title">Favorite workspace settings</h2>' +
+            '</div>' +
+            '<button class="settings-dialog__close" type="button" data-action="close-layout-settings" aria-label="Close fullscreen layout settings">' +
+              '<span aria-hidden="true">&times;</span>' +
+            '</button>' +
+          '</div>' +
+          '<p class="settings-dialog__copy">Control the expanded favorites workspace without touching progress backup, restore, or reset settings.</p>' +
+          '<div class="settings-dialog__grid layout-settings-dialog__grid">' +
+            '<section class="settings-dialog__card">' +
+              '<p class="settings-dialog__card-title">Cards across</p>' +
+              '<p class="settings-dialog__card-copy">Choose how many favorite cards should sit across on wide screens. Narrower screens still reduce the count automatically.</p>' +
+              '<label class="layout-settings-dialog__field" for="favoritesLayoutColumns">' +
+                '<span class="layout-settings-dialog__label">Wide-screen cards across</span>' +
+                '<input id="favoritesLayoutColumns" class="layout-settings-dialog__number" type="number" min="2" max="8" step="1">' +
+              '</label>' +
+            '</section>' +
+            '<section class="settings-dialog__card">' +
+              '<p class="settings-dialog__card-title">Search bar</p>' +
+              '<p class="settings-dialog__card-copy">Show or hide the fullscreen favorites search bar in the header.</p>' +
+              '<label class="layout-settings-dialog__toggle">' +
+                '<input id="favoritesLayoutSearchToggle" class="layout-settings-dialog__checkbox" type="checkbox">' +
+                '<span class="layout-settings-dialog__toggle-copy">' +
+                  '<span class="layout-settings-dialog__label">Show fullscreen search</span>' +
+                  '<span class="layout-settings-dialog__hint">Keep the favorites search field visible while the expanded workspace is open.</span>' +
+                '</span>' +
+              '</label>' +
+            '</section>' +
+          '</div>' +
+          '<p class="layout-settings-dialog__note">Changes save automatically in this browser.</p>' +
+        '</div>';
+
+      document.body.appendChild(dialog);
+      return dialog;
+    }
+
+    function syncFavoritesSearchInput() {
+      if (fullscreenSearchInput && fullscreenSearchInput.value !== favoriteQuery) {
+        fullscreenSearchInput.value = favoriteQuery;
       }
     }
 
-    function setQuery(nextQuery) {
-      query = nextQuery || "";
-      clearFavoriteDragState();
-      syncSearchInputs();
+    function setHomeQuery(nextQuery) {
+      homeQuery = nextQuery || "";
       render();
+    }
+
+    function setFavoriteQuery(nextQuery) {
+      favoriteQuery = nextQuery || "";
+      clearFavoriteDragState();
+      syncFavoritesSearchInput();
+      render();
+    }
+
+    function renderFavoritesLayoutDialog(layoutSettings) {
+      if (!layoutDialog) {
+        return;
+      }
+
+      layoutColumnsInput.value = String(clampFavoritesFullscreenColumns(layoutSettings.fullscreenColumns));
+      layoutSearchToggle.checked = Boolean(layoutSettings.showSearch);
+    }
+
+    function closeFavoritesLayoutDialog() {
+      if (!layoutDialog) {
+        return;
+      }
+
+      document.body.classList.remove("has-modal-open");
+
+      if (typeof layoutDialog.close === "function" && layoutDialog.open) {
+        layoutDialog.close();
+      } else {
+        layoutDialog.removeAttribute("open");
+        layoutDialog.hidden = true;
+      }
+
+      if (layoutPreviousFocus && typeof layoutPreviousFocus.focus === "function") {
+        layoutPreviousFocus.focus();
+      }
+    }
+
+    function openFavoritesLayoutDialog() {
+      var layoutSettings;
+
+      if (!layoutDialog || layoutDialog.open) {
+        return;
+      }
+
+      layoutPreviousFocus = document.activeElement;
+      layoutSettings = window.DMZStorage.getFavoritesLayoutSettings();
+      renderFavoritesLayoutDialog(layoutSettings);
+      layoutDialog.hidden = false;
+      document.body.classList.add("has-modal-open");
+
+      if (typeof layoutDialog.showModal === "function") {
+        layoutDialog.showModal();
+      } else {
+        layoutDialog.setAttribute("open", "open");
+      }
+
+      if (layoutColumnsInput && typeof layoutColumnsInput.focus === "function") {
+        layoutColumnsInput.focus();
+      }
     }
 
     function syncFavoritesFullscreenButton() {
@@ -389,9 +510,21 @@
       fullscreenButton.title = isFavoritesFullscreen ? "Exit expanded favorites view" : "Expand favorite upgrades";
     }
 
-    function syncFavoritesFullscreenState() {
+    function syncFavoritesFullscreenState(layoutSettings) {
       document.body.classList.toggle(FAVORITES_FULLSCREEN_CLASS, isFavoritesFullscreen);
       syncFavoritesFullscreenButton();
+
+      if (settingsButton) {
+        settingsButton.hidden = isFavoritesFullscreen;
+      }
+
+      if (fullscreenLayoutButton) {
+        fullscreenLayoutButton.hidden = !isFavoritesFullscreen;
+      }
+
+      if (fullscreenSearch) {
+        fullscreenSearch.hidden = !isFavoritesFullscreen || !layoutSettings.showSearch;
+      }
     }
 
     function getRenderedFavoriteIds() {
@@ -505,47 +638,112 @@
       }
 
       isFavoritesFullscreen = nextState;
+
+      if (!isFavoritesFullscreen) {
+        closeFavoritesLayoutDialog();
+      }
+
       clearFavoriteDragState();
-      syncFavoritesFullscreenState();
       render();
     }
 
     function render() {
       var state = window.DMZStorage.getState();
+      var favoritesLayout = state.favoritesLayout;
       var stats = window.DMZApp.getOverallStats(state);
-      var favoriteState = renderFavoriteSection(state, isFavoritesFullscreen, query);
-      var searchState = renderSearchMatches(query, state);
+      var favoriteState;
+      var searchState;
+
+      if (!favoritesLayout.showSearch && favoriteQuery) {
+        favoriteQuery = "";
+      }
+
+      fullscreenColumnCount = getFavoritesFullscreenColumnCount(favoritesLayout.fullscreenColumns);
+      favoriteState = renderFavoriteSection(state, isFavoritesFullscreen, favoriteQuery, favoritesLayout);
+      searchState = renderSearchMatches(homeQuery, state);
 
       window.DMZApp.renderMeter(meter, stats.percent, "overall completion");
       metrics.innerHTML = renderMetricGrid(stats);
       favoritesMeta.textContent = favoriteState.meta;
       favoritesGrid.innerHTML = favoriteState.content;
-      syncSearchInputs();
-      syncFavoritesFullscreenState();
+      favoritesGrid.style.setProperty("--favorites-fullscreen-columns", String(fullscreenColumnCount));
+      syncFavoritesSearchInput();
+      syncFavoritesFullscreenState(favoritesLayout);
+
+      if (layoutDialog && layoutDialog.open) {
+        renderFavoritesLayoutDialog(favoritesLayout);
+      }
+
       Array.prototype.forEach.call(favoritesGrid.querySelectorAll(".favorite-card"), function (card) {
         card.addEventListener("toggle", function () {
           collapsedFavoriteIds[card.dataset.upgradeId] = !card.open;
         });
       });
-      categoryGrid.innerHTML = renderCategoryCards(query, state);
+      categoryGrid.innerHTML = renderCategoryCards(homeQuery, state);
       resultsSection.hidden = searchState.hidden;
       resultsMeta.textContent = searchState.meta;
       resultsGrid.innerHTML = searchState.content;
     }
 
     searchInput.addEventListener("input", function (event) {
-      setQuery(event.target.value);
+      setHomeQuery(event.target.value);
     });
 
     if (fullscreenSearchInput) {
       fullscreenSearchInput.addEventListener("input", function (event) {
-        setQuery(event.target.value);
+        setFavoriteQuery(event.target.value);
       });
     }
 
     if (fullscreenButton) {
       fullscreenButton.addEventListener("click", function () {
         setFavoritesFullscreen(!isFavoritesFullscreen);
+      });
+    }
+
+    if (fullscreenLayoutButton) {
+      fullscreenLayoutButton.addEventListener("click", function () {
+        openFavoritesLayoutDialog();
+      });
+    }
+
+    if (layoutDialog) {
+      layoutDialog.addEventListener("cancel", function (event) {
+        event.preventDefault();
+        closeFavoritesLayoutDialog();
+      });
+
+      layoutDialog.addEventListener("click", function (event) {
+        var action = event.target.closest("[data-action]");
+
+        if (event.target === layoutDialog) {
+          closeFavoritesLayoutDialog();
+          return;
+        }
+
+        if (!action) {
+          return;
+        }
+
+        if (action.dataset.action === "close-layout-settings") {
+          closeFavoritesLayoutDialog();
+        }
+      });
+
+      layoutColumnsInput.addEventListener("change", function () {
+        var nextColumns = clampFavoritesFullscreenColumns(layoutColumnsInput.value);
+
+        layoutColumnsInput.value = String(nextColumns);
+        window.DMZStorage.setFavoritesLayoutSettings({ fullscreenColumns: nextColumns });
+      });
+
+      layoutSearchToggle.addEventListener("change", function () {
+        if (!layoutSearchToggle.checked && favoriteQuery) {
+          favoriteQuery = "";
+          syncFavoritesSearchInput();
+        }
+
+        window.DMZStorage.setFavoritesLayoutSettings({ showSearch: layoutSearchToggle.checked });
       });
     }
 
@@ -556,7 +754,7 @@
     });
 
     window.addEventListener("resize", function () {
-      var nextColumnCount = getFavoritesFullscreenColumnCount();
+      var nextColumnCount = getFavoritesFullscreenColumnCount(window.DMZStorage.getFavoritesLayoutSettings().fullscreenColumns);
 
       if (nextColumnCount === fullscreenColumnCount) {
         return;
