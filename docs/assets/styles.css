@@ -595,7 +595,8 @@ body[data-page="category"] .search-field {
 }
 
 .favorites-panel .panel__actions .settings-trigger,
-.category-groups-panel .panel__actions .settings-trigger {
+.category-groups-panel .panel__actions .settings-trigger,
+.barter-recipes-panel .panel__actions .settings-trigger {
   border: 0;
   width: 2.35rem;
   height: 2.35rem;
@@ -612,7 +613,9 @@ body[data-page="category"] .search-field {
 .favorites-panel .panel__actions .settings-trigger:hover,
 .favorites-panel .panel__actions .settings-trigger:focus-visible,
 .category-groups-panel .panel__actions .settings-trigger:hover,
-.category-groups-panel .panel__actions .settings-trigger:focus-visible {
+.category-groups-panel .panel__actions .settings-trigger:focus-visible,
+.barter-recipes-panel .panel__actions .settings-trigger:hover,
+.barter-recipes-panel .panel__actions .settings-trigger:focus-visible {
   transform: translateY(-1px) scale(1.04);
   border-color: transparent;
   background: rgba(46, 52, 64, 0.22);
@@ -622,6 +625,7 @@ body[data-page="category"] .search-field {
 
 .favorites-panel .panel__actions .settings-trigger__icon,
 .category-groups-panel .panel__actions .settings-trigger__icon,
+.barter-recipes-panel .panel__actions .settings-trigger__icon,
 .toggle-details-button__icon {
   display: block;
   width: 1.32rem;
@@ -644,7 +648,9 @@ body[data-page="category"] .search-field {
 .favorites-panel .panel__actions .settings-trigger:hover .settings-trigger__icon,
 .favorites-panel .panel__actions .settings-trigger:focus-visible .settings-trigger__icon,
 .category-groups-panel .panel__actions .settings-trigger:hover .settings-trigger__icon,
-.category-groups-panel .panel__actions .settings-trigger:focus-visible .settings-trigger__icon {
+.category-groups-panel .panel__actions .settings-trigger:focus-visible .settings-trigger__icon,
+.barter-recipes-panel .panel__actions .settings-trigger:hover .settings-trigger__icon,
+.barter-recipes-panel .panel__actions .settings-trigger:focus-visible .settings-trigger__icon {
   color: rgba(236, 239, 244, 0.96);
 }
 
@@ -1877,12 +1883,12 @@ body[data-page="barter-recipes"] .toolbar__group {
 }
 
 .recipe-card .upgrade-card__summary {
-  position: relative;
-  display: block;
-  padding-right: 2.85rem;
+  gap: 0.8rem;
 }
 
 .recipe-card .upgrade-card__summary-main {
+  min-width: 0;
+  flex: 1 1 auto;
   gap: 0.7rem;
 }
 
@@ -1902,12 +1908,12 @@ body[data-page="barter-recipes"] .toolbar__group {
 .recipe-card .upgrade-card__chips {
   flex-wrap: nowrap;
   gap: 0.4rem;
+  min-width: 0;
 }
 
 .recipe-card .upgrade-card__collapse {
-  position: absolute;
-  top: 0;
-  right: 0;
+  position: static;
+  flex: 0 0 auto;
 }
 
 body[data-page="barter-recipes"] .recipe-card .chip {
