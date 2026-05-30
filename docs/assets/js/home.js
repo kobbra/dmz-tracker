@@ -501,6 +501,36 @@
       }
     }
 
+    function getActiveBrowserFullscreenElement() {
+      return document.fullscreenElement || document.webkitFullscreenElement || null;
+    }
+
+    function requestBrowserFullscreen() {
+      var fullscreenRoot = document.documentElement;
+
+      if (fullscreenRoot && typeof fullscreenRoot.requestFullscreen === "function") {
+        return fullscreenRoot.requestFullscreen();
+      }
+
+      if (fullscreenRoot && typeof fullscreenRoot.webkitRequestFullscreen === "function") {
+        fullscreenRoot.webkitRequestFullscreen();
+      }
+
+      return null;
+    }
+
+    function exitBrowserFullscreen() {
+      if (typeof document.exitFullscreen === "function") {
+        return document.exitFullscreen();
+      }
+
+      if (typeof document.webkitExitFullscreen === "function") {
+        document.webkitExitFullscreen();
+      }
+
+      return null;
+    }
+
     function syncFavoritesFullscreenButton() {
       if (!fullscreenButton) {
         return;
@@ -508,8 +538,8 @@
 
       fullscreenButton.classList.toggle("is-active", isFavoritesFullscreen);
       fullscreenButton.setAttribute("aria-pressed", isFavoritesFullscreen ? "true" : "false");
-      fullscreenButton.setAttribute("aria-label", isFavoritesFullscreen ? "Exit expanded favorites view" : "Toggle expanded favorites view");
-      fullscreenButton.title = isFavoritesFullscreen ? "Exit expanded favorites view" : "Expand favorite upgrades";
+      fullscreenButton.setAttribute("aria-label", isFavoritesFullscreen ? "Exit fullscreen favorites view" : "Open fullscreen favorites view");
+      fullscreenButton.title = isFavoritesFullscreen ? "Exit fullscreen favorites view" : "Open fullscreen favorites view";
     }
 
     function syncFavoritesFullscreenState(layoutSettings) {
@@ -738,9 +768,39 @@
 
     if (fullscreenButton) {
       fullscreenButton.addEventListener("click", function () {
-        setFavoritesFullscreen(!isFavoritesFullscreen);
+        var fullscreenRequest;
+
+        if (isFavoritesFullscreen) {
+          if (getActiveBrowserFullscreenElement()) {
+            exitBrowserFullscreen();
+          }
+
+          setFavoritesFullscreen(false);
+          return;
+        }
+
+        setFavoritesFullscreen(true);
+        fullscreenRequest = requestBrowserFullscreen();
+
+        if (fullscreenRequest && typeof fullscreenRequest.catch === "function") {
+          fullscreenRequest.catch(function () {
+            // Keep the existing expanded in-page mode even if the browser blocks fullscreen.
+          });
+        }
       });
     }
+
+    document.addEventListener("fullscreenchange", function () {
+      if (!getActiveBrowserFullscreenElement() && isFavoritesFullscreen) {
+        setFavoritesFullscreen(false);
+      }
+    });
+
+    document.addEventListener("webkitfullscreenchange", function () {
+      if (!getActiveBrowserFullscreenElement() && isFavoritesFullscreen) {
+        setFavoritesFullscreen(false);
+      }
+    });
 
     if (favoritesToggleAllButton) {
       favoritesToggleAllButton.addEventListener("click", function () {
