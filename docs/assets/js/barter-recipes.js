@@ -40,10 +40,6 @@
       label: "Gold-tier",
       className: "chip chip--accent"
     },
-    blue: {
-      label: "Key item",
-      className: "chip chip--warning"
-    },
     red: {
       label: "Weapon trade",
       className: "chip chip--warning"
@@ -310,23 +306,8 @@
     return "<span class=\"" + meta.className + "\">" + escapeHtml(meta.label) + "</span>";
   }
 
-  function renderIngredientMeta(ingredient) {
-    var parts = [];
-
-    if (ingredient.type === "gold") {
-      parts.push("high value");
-    }
-
-    if (ingredient.type === "blue") {
-      parts.push("key item");
-    }
-
-    return parts.join(" | ");
-  }
-
   function renderIngredientRow(ingredient) {
     var escapeHtml = getEscapeHtml();
-    var ingredientMeta = renderIngredientMeta(ingredient);
 
     return "<li class=\"task-row barter-ingredient\">" +
       "<div class=\"task-row__main\">" +
@@ -336,9 +317,6 @@
             "<span class=\"task-row__title\">" + escapeHtml(ingredient.name) + "</span>" +
             "<span class=\"task-row__count\">x" + escapeHtml(String(ingredient.quantity)) + "</span>" +
           "</div>" +
-          (ingredientMeta
-            ? "<div class=\"task-row__subtitle\">" + escapeHtml(ingredientMeta) + "</div>"
-            : "") +
         "</div>" +
       "</div>" +
     "</li>";
