@@ -1901,6 +1901,8 @@ body[data-page="barter-recipes"] .recipe-card .chip {
   padding: 0.34rem 0.56rem;
   font-size: 0.7rem;
   letter-spacing: 0.1em;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .barter-ingredient-list {
