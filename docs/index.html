@@ -87,7 +87,14 @@
                 </div>
                 <p id="favoritesMeta" class="panel__copy"></p>
                 <div class="panel__actions">
-                  <button id="favoritesToggleAllButton" class="button button--ghost button--small toggle-details-button" type="button" aria-controls="favoritesGrid">Expand all</button>
+                  <button id="favoritesToggleAllButton" class="settings-trigger toggle-details-button" type="button" aria-controls="favoritesGrid" aria-label="Expand all visible favorite cards" title="Expand all visible favorite cards" data-state="expand">
+                    <span class="settings-trigger__icon toggle-details-button__icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" focusable="false">
+                        <path class="toggle-details-button__icon-expand" d="M12 5.41 15.59 9 17 7.59 12 2.59 7 7.59 8.41 9 12 5.41Zm0 13.18L8.41 15 7 16.41l5 5 5-5L15.59 15 12 18.59Z"></path>
+                        <path class="toggle-details-button__icon-collapse" d="M12 10.59 8.41 7 7 8.41l5 5 5-5L15.59 7 12 10.59Zm0 2.82L15.59 17 17 15.59l-5-5-5 5L8.41 17 12 13.41Z"></path>
+                      </svg>
+                    </span>
+                  </button>
                   <button id="favoritesFullscreenButton" class="settings-trigger settings-trigger--fullscreen" type="button" aria-label="Toggle expanded favorites view" aria-controls="favoritesGrid" aria-pressed="false">
                     <span class="settings-trigger__icon" aria-hidden="true">
                       <svg viewBox="0 0 24 24" focusable="false">

@@ -183,7 +183,7 @@
       hasCards = getVisibleUpgradeCards().length > 0;
       shouldCollapse = hasCards && areAllVisibleUpgradeCardsExpanded();
       expandAllButton.disabled = !hasCards;
-      expandAllButton.textContent = shouldCollapse ? "Collapse all" : "Expand all";
+      expandAllButton.dataset.state = shouldCollapse ? "collapse" : "expand";
       expandAllButton.setAttribute("aria-label", (shouldCollapse ? "Collapse" : "Expand") + " all visible upgrade cards");
       expandAllButton.title = shouldCollapse ? "Collapse all visible upgrade cards" : "Expand all visible upgrade cards";
     }

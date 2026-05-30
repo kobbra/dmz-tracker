@@ -606,13 +606,38 @@ body[data-page="category"] .search-field {
 }
 
 .toggle-details-button {
-  white-space: nowrap;
+  width: 3.1rem;
+  height: 3.1rem;
+  flex: 0 0 auto;
+}
+
+.toggle-details-button:hover,
+.toggle-details-button:focus-visible {
+  transform: translateY(-1px) scale(1.02);
+}
+
+.toggle-details-button__icon {
+  width: 1.18rem;
+  height: 1.18rem;
+}
+
+.toggle-details-button__icon-collapse {
+  display: none;
+}
+
+.toggle-details-button[data-state="collapse"] .toggle-details-button__icon-expand {
+  display: none;
+}
+
+.toggle-details-button[data-state="collapse"] .toggle-details-button__icon-collapse {
+  display: block;
 }
 
 .toggle-details-button:disabled {
   opacity: 0.45;
   cursor: default;
   pointer-events: none;
+  transform: none;
 }
 
 body.has-modal-open {

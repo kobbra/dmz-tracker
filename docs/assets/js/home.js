@@ -557,7 +557,7 @@
       hasCards = getVisibleFavoriteCards().length > 0;
       shouldCollapse = hasCards && areAllVisibleFavoritesExpanded();
       favoritesToggleAllButton.disabled = !hasCards;
-      favoritesToggleAllButton.textContent = shouldCollapse ? "Collapse all" : "Expand all";
+      favoritesToggleAllButton.dataset.state = shouldCollapse ? "collapse" : "expand";
       favoritesToggleAllButton.setAttribute("aria-label", (shouldCollapse ? "Collapse" : "Expand") + " all visible favorite cards");
       favoritesToggleAllButton.title = shouldCollapse ? "Collapse all visible favorite cards" : "Expand all visible favorite cards";
     }
