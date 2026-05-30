@@ -89,7 +89,7 @@
     recipe("al-mazrah", "tactical-camera", "Tactical Camera", "utility", null, null, [
       ingredient("car-battery", "Car Battery", 1, 1)
     ]),
-    recipe("al-mazrah", "three-plate-medic-vest", "Three-Plate Medic Vest", "vests", "gold", "White Lotus rep 2 + eliminate Pyro", [
+    recipe("al-mazrah", "three-plate-medic-vest", "3-Plate Medic Vest", "vests", "gold", "White Lotus rep 2 + eliminate Pyro", [
       ingredient("bandage", "Bandage", 3, 1),
       ingredient("liquor", "Liquor", 1, 2),
       ingredient("watch", "Watch", 1, 1)
@@ -153,7 +153,7 @@
       ingredient("vintage-wine", "Vintage Wine", 1, 4, "gold"),
       ingredient("encrypted-hard-drive", "Encrypted Hard Drive", 1, 3, "gold")
     ]),
-    recipe("ashika-island", "three-plate-medic-vest", "Three-Plate Medic Vest", "vests", "gold", "White Lotus rep 2 + eliminate Pyro", [
+    recipe("ashika-island", "three-plate-medic-vest", "3-Plate Medic Vest", "vests", "gold", "White Lotus rep 2 + eliminate Pyro", [
       ingredient("bandage", "Bandage", 3, 1),
       ingredient("liquor", "Liquor", 1, 2),
       ingredient("watch", "Watch", 1, 1)
@@ -215,11 +215,11 @@
       ingredient("purified-water", "Purified Water", 1, 1)
     ]),
     recipe("vondel", "skeleton-key", "Skeleton Key", "keys", "blue", "White Lotus rep 2 + eliminate Velikan in Building 21", [
-      ingredient("three-plate-armor-vest", "Three-Plate Armor Vest", 3, 3, "gold"),
+      ingredient("three-plate-armor-vest", "3-Plate Armor Vest", 3, 3, "gold"),
       ingredient("self-revive-kit", "Self Revive Kit", 3, 2, "gold"),
       ingredient("gold-bar", "Gold Bar", 1, 4, "gold")
     ]),
-    recipe("vondel", "three-plate-medic-vest", "Three-Plate Medic Vest", "vests", "gold", "White Lotus rep 2 + eliminate Pyro", [
+    recipe("vondel", "three-plate-medic-vest", "3-Plate Medic Vest", "vests", "gold", "White Lotus rep 2 + eliminate Pyro", [
       ingredient("bandage", "Bandage", 3, 1),
       ingredient("liquor", "Liquor", 1, 2),
       ingredient("watch", "Watch", 1, 1)

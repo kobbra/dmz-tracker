@@ -987,7 +987,7 @@ window.DMZ_UPGRADES = [
           },
           {
             "id": "weapons-locker-task-83",
-            "title": "Extract Three-plate Vests",
+            "title": "Extract 3-Plate Vests",
             "totalCount": 5,
             "iconPath": "./assets/images/dmz/items/Three-plate_Vests.png"
           }
