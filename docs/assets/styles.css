@@ -1816,7 +1816,9 @@ body.is-favorites-fullscreen .favorite-card.is-drop-after::after {
 }
 
 .barter-filters-panel__search .search-field {
-  width: min(100%, 360px);
+  width: 100%;
+  max-width: 720px;
+  min-width: 0;
 }
 
 .barter-filters-panel #barterFilterMeta {
