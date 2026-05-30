@@ -311,7 +311,7 @@
   }
 
   function renderIngredientMeta(ingredient) {
-    var parts = ["Rarity " + ingredient.rarity];
+    var parts = [];
 
     if (ingredient.type === "gold") {
       parts.push("high value");
@@ -326,6 +326,7 @@
 
   function renderIngredientRow(ingredient) {
     var escapeHtml = getEscapeHtml();
+    var ingredientMeta = renderIngredientMeta(ingredient);
 
     return "<li class=\"task-row barter-ingredient\">" +
       "<div class=\"task-row__main\">" +
@@ -335,7 +336,9 @@
             "<span class=\"task-row__title\">" + escapeHtml(ingredient.name) + "</span>" +
             "<span class=\"task-row__count\">x" + escapeHtml(String(ingredient.quantity)) + "</span>" +
           "</div>" +
-          "<div class=\"task-row__subtitle\">" + escapeHtml(renderIngredientMeta(ingredient)) + "</div>" +
+          (ingredientMeta
+            ? "<div class=\"task-row__subtitle\">" + escapeHtml(ingredientMeta) + "</div>"
+            : "") +
         "</div>" +
       "</div>" +
     "</li>";
