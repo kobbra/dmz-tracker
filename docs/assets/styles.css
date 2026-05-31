@@ -1929,10 +1929,6 @@ body.is-favorites-fullscreen .favorite-card.is-drop-after::after {
   flex: 0 0 auto;
 }
 
-.recipe-card .upgrade-card__collapse:hover {
-  background: transparent;
-}
-
 body[data-page="barter-recipes"] .recipe-card .chip {
   padding: 0.34rem 0.56rem;
   font-size: 0.7rem;
@@ -2162,7 +2158,6 @@ body[data-page="category"] .group-card {
   color: var(--text-soft);
 }
 
-.upgrade-card__collapse:hover,
 .upgrade-card__collapse:focus-visible {
   background: rgba(46, 52, 64, 0.3);
   outline: none;
