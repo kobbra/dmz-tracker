@@ -1929,6 +1929,10 @@ body.is-favorites-fullscreen .favorite-card.is-drop-after::after {
   flex: 0 0 auto;
 }
 
+.recipe-card .upgrade-card__collapse:hover {
+  background: transparent;
+}
+
 body[data-page="barter-recipes"] .recipe-card .chip {
   padding: 0.34rem 0.56rem;
   font-size: 0.7rem;
