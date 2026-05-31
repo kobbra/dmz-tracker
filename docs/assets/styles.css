@@ -167,6 +167,22 @@ img {
   transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
 
+.site-nav__link[href$="barter-recipes.html"] {
+  position: relative;
+  margin-left: 0.45rem;
+}
+
+.site-nav__link[href$="barter-recipes.html"]::before {
+  content: "";
+  position: absolute;
+  top: 0.18rem;
+  bottom: 0.18rem;
+  left: -0.55rem;
+  width: 1px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, transparent, rgba(136, 192, 208, 0.34), transparent);
+}
+
 .site-nav__link:hover,
 .site-nav__link:focus-visible {
   transform: translateY(-1px);
@@ -2477,6 +2493,21 @@ body[data-page="category"] .group-card {
     width: 100%;
     text-align: left;
     padding: 0.9rem 1rem;
+  }
+
+  .site-header.is-nav-enhanced .site-nav__link[href$="barter-recipes.html"] {
+    margin-top: 0.3rem;
+    margin-left: 0;
+  }
+
+  .site-header.is-nav-enhanced .site-nav__link[href$="barter-recipes.html"]::before {
+    top: -0.35rem;
+    right: 0;
+    bottom: auto;
+    left: 0;
+    width: auto;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(136, 192, 208, 0.34), transparent);
   }
 
   .hero__grid {
