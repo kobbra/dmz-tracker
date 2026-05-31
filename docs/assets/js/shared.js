@@ -224,6 +224,10 @@
     return Boolean(state && state.favoriteUpgradeIds && state.favoriteUpgradeIds.indexOf(upgradeId) !== -1);
   }
 
+  function isFavoriteRecipe(recipeKey, state) {
+    return Boolean(state && state.favoriteRecipeKeys && state.favoriteRecipeKeys.indexOf(recipeKey) !== -1);
+  }
+
   function clampTaskCount(task, value) {
     var amount = Math.floor(Number(value) || 0);
 
@@ -440,10 +444,14 @@
     "</div>";
   }
 
-  function renderFavoriteToggle(upgradeId, isFavorite) {
-    var label = isFavorite ? "Remove from favorites" : "Add to favorites";
+  function renderFavoriteToggle(favoriteId, isFavorite, favoriteType) {
+    var type = favoriteType === "recipe" ? "recipe" : "upgrade";
+    var label = (isFavorite ? "Remove " : "Add ") + type + (isFavorite ? " from favorites" : " to favorites");
+    var typeAttribute = type === "recipe"
+      ? " data-recipe-key=\"" + favoriteId + "\""
+      : " data-upgrade-id=\"" + favoriteId + "\"";
 
-    return "<button class=\"favorite-toggle" + (isFavorite ? " is-active" : "") + "\" type=\"button\" data-action=\"toggle-favorite\" data-upgrade-id=\"" + upgradeId + "\" aria-pressed=\"" + (isFavorite ? "true" : "false") + "\" aria-label=\"" + escapeHtml(label) + "\" title=\"" + escapeHtml(label) + "\">" +
+    return "<button class=\"favorite-toggle" + (isFavorite ? " is-active" : "") + "\" type=\"button\" data-action=\"toggle-favorite\" data-favorite-type=\"" + type + "\" data-favorite-id=\"" + favoriteId + "\"" + typeAttribute + " aria-pressed=\"" + (isFavorite ? "true" : "false") + "\" aria-label=\"" + escapeHtml(label) + "\" title=\"" + escapeHtml(label) + "\">" +
       "<span class=\"favorite-toggle__icon\" aria-hidden=\"true\">" + (isFavorite ? "&#9733;" : "&#9734;") + "</span>" +
     "</button>";
   }
@@ -626,6 +634,7 @@
     getCategoryStats: getCategoryStats,
     getOverallStats: getOverallStats,
     isFavoriteUpgrade: isFavoriteUpgrade,
+    isFavoriteRecipe: isFavoriteRecipe,
     upgradeMatchesQuery: upgradeMatchesQuery,
     categoryMatchesQuery: categoryMatchesQuery,
     getMatchingTasks: getMatchingTasks,

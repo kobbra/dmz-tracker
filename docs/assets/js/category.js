@@ -279,7 +279,12 @@
       if (trigger.dataset.action === "toggle-favorite") {
         event.preventDefault();
         event.stopPropagation();
-        window.DMZStorage.toggleFavoriteUpgrade(trigger.dataset.upgradeId);
+
+        if (trigger.dataset.favoriteType === "recipe") {
+          window.DMZStorage.toggleFavoriteRecipe(trigger.dataset.favoriteId);
+        } else {
+          window.DMZStorage.toggleFavoriteUpgrade(trigger.dataset.favoriteId || trigger.dataset.upgradeId);
+        }
       }
     });
 

@@ -234,6 +234,72 @@
     return String(value || "").toLowerCase().replace(/\s+/g, " ").trim();
   }
 
+  function parseFavoriteRef(value) {
+    var match = typeof value === "string" ? value.match(/^(upgrade|recipe):(.+)$/) : null;
+
+    if (!match || !match[2]) {
+      return null;
+    }
+
+    return {
+      type: match[1],
+      value: match[2]
+    };
+  }
+
+  function getFavoriteEntry(favoriteRef) {
+    var parsed = parseFavoriteRef(favoriteRef);
+    var upgradeEntry;
+    var recipeEntry;
+
+    if (!parsed) {
+      return null;
+    }
+
+    if (parsed.type === "upgrade") {
+      upgradeEntry = window.DMZApp.getUpgradeEntry(parsed.value);
+
+      if (!upgradeEntry) {
+        return null;
+      }
+
+      return {
+        type: "upgrade",
+        favoriteRef: favoriteRef,
+        category: upgradeEntry.category,
+        upgrade: upgradeEntry.upgrade
+      };
+    }
+
+    if (!window.DMZBarter || typeof window.DMZBarter.getRecipeEntry !== "function") {
+      return null;
+    }
+
+    recipeEntry = window.DMZBarter.getRecipeEntry(parsed.value);
+
+    if (!recipeEntry) {
+      return null;
+    }
+
+    return {
+      type: "recipe",
+      favoriteRef: favoriteRef,
+      recipe: recipeEntry
+    };
+  }
+
+  function formatRecipeIngredientPreview(recipe) {
+    var preview = recipe.ingredients.slice(0, 2).map(function (ingredient) {
+      return ingredient.name + " x" + ingredient.quantity;
+    }).join(" | ");
+
+    if (recipe.ingredients.length > 2) {
+      preview += " | +" + (recipe.ingredients.length - 2) + " more";
+    }
+
+    return preview;
+  }
+
   function favoriteEntryMatchesQuery(entry, query) {
     var normalizedQuery = normalizeFavoriteQuery(query);
 
@@ -241,21 +307,25 @@
       return true;
     }
 
+    if (entry.type === "recipe") {
+      return Boolean(window.DMZBarter && window.DMZBarter.recipeMatchesQuery && window.DMZBarter.recipeMatchesQuery(entry.recipe, normalizedQuery));
+    }
+
     return window.DMZApp.upgradeMatchesQuery(entry.upgrade, normalizedQuery) ||
       normalizeFavoriteQuery(entry.category.title).indexOf(normalizedQuery) !== -1 ||
       normalizeFavoriteQuery(entry.category.summary).indexOf(normalizedQuery) !== -1;
   }
 
-  function renderFavoriteCard(entry, state, canReorder, collapseByDefault) {
+  function renderFavoriteUpgradeCard(entry, state, canReorder, collapseByDefault) {
     var stats = window.DMZApp.getUpgradeStats(entry.upgrade, state);
-    var isCollapsed = shouldCollapseFavorite(entry.upgrade.id, collapseByDefault);
+    var isCollapsed = shouldCollapseFavorite(entry.favoriteRef, collapseByDefault);
     var unlockLabel = (entry.upgrade.unlock && entry.upgrade.unlock.name ? entry.upgrade.unlock.name : "DMZ") +
       (entry.upgrade.unlock && entry.upgrade.unlock.level ? " " + entry.upgrade.unlock.level : "");
     var preview = entry.upgrade.reward || entry.upgrade.tasks.slice(0, 2).map(function (task) {
       return task.title;
     }).join(" | ");
 
-    return "<details class=\"match-card favorite-card\" data-upgrade-id=\"" + entry.upgrade.id + "\"" + (canReorder ? " draggable=\"true\"" : "") + (isCollapsed ? "" : " open") + ">" +
+    return "<details class=\"match-card favorite-card\" data-favorite-ref=\"" + entry.favoriteRef + "\" data-favorite-type=\"upgrade\"" + (canReorder ? " draggable=\"true\"" : "") + (isCollapsed ? "" : " open") + ">" +
       "<summary class=\"favorite-card__summary\">" +
         "<div class=\"favorite-card__summary-main\">" +
           "<div class=\"match-card__meta\">" +
@@ -292,6 +362,68 @@
     "</details>";
   }
 
+  function renderFavoriteRecipeCard(entry, canReorder, collapseByDefault) {
+    var recipe = entry.recipe;
+    var escapeHtml = window.DMZApp.escapeHtml;
+    var ingredientLabel = recipe.ingredients.length + (recipe.ingredients.length === 1 ? " ingredient" : " ingredients");
+    var isCollapsed = shouldCollapseFavorite(entry.favoriteRef, collapseByDefault);
+    var preview = recipe.unlock
+      ? "Unlock: " + recipe.unlock
+      : formatRecipeIngredientPreview(recipe);
+
+    return "<details class=\"match-card favorite-card favorite-card--recipe\" data-favorite-ref=\"" + entry.favoriteRef + "\" data-favorite-type=\"recipe\"" + (canReorder ? " draggable=\"true\"" : "") + (isCollapsed ? "" : " open") + ">" +
+      "<summary class=\"favorite-card__summary\">" +
+        "<div class=\"favorite-card__summary-main\">" +
+          "<div class=\"match-card__meta\">" +
+            "<span class=\"chip chip--accent\">" + escapeHtml(window.DMZBarter.getRegionLabel(recipe.region)) + "</span>" +
+            "<span class=\"chip\">" + escapeHtml(window.DMZBarter.getFamilyLabel(recipe.family)) + "</span>" +
+            "<span class=\"chip\">" + escapeHtml(ingredientLabel) + "</span>" +
+            window.DMZBarter.renderTypeChip(recipe) +
+          "</div>" +
+          "<div class=\"upgrade-card__title-row\">" +
+            window.DMZApp.renderItemIcon(window.DMZBarter.getRecipeIconPath(recipe), "upgrade-card__summary-icon") +
+            "<h3 class=\"upgrade-card__title\">" + escapeHtml(recipe.name) + "</h3>" +
+            window.DMZApp.renderFavoriteToggle(recipe.key, true, "recipe") +
+          "</div>" +
+          "<p class=\"favorite-card__summary-copy\">" + escapeHtml(preview) + "</p>" +
+        "</div>" +
+        "<div class=\"favorite-card__summary-actions\">" +
+          (canReorder
+            ? "<button class=\"favorite-card__drag-handle\" type=\"button\" data-action=\"drag-handle\" aria-label=\"Drag to reorder favorite\" title=\"Drag to reorder favorite\">" +
+                "<span class=\"favorite-card__drag-handle-icon\" aria-hidden=\"true\"></span>" +
+              "</button>"
+            : "") +
+          "<span class=\"upgrade-card__collapse\" aria-hidden=\"true\">" +
+            "<span class=\"upgrade-card__collapse-icon\" aria-hidden=\"true\"></span>" +
+          "</span>" +
+        "</div>" +
+      "</summary>" +
+      "<div class=\"favorite-card__details\">" +
+        "<ul class=\"task-list favorite-card__tasks barter-ingredient-list\">" +
+          recipe.ingredients.map(function (ingredient) {
+            return window.DMZBarter.renderIngredientRow(ingredient);
+          }).join("") +
+        "</ul>" +
+        (recipe.unlock
+          ? "<div class=\"upgrade-card__reward barter-recipe__note\">" +
+              "<div class=\"upgrade-card__reward-copy\">" +
+                "<p class=\"upgrade-card__reward-label\">Unlock note</p>" +
+                "<p class=\"upgrade-card__reward-value\">" + escapeHtml(recipe.unlock) + "</p>" +
+              "</div>" +
+            "</div>"
+          : "") +
+      "</div>" +
+    "</details>";
+  }
+
+  function renderFavoriteCard(entry, state, canReorder, collapseByDefault) {
+    if (entry.type === "recipe") {
+      return renderFavoriteRecipeCard(entry, canReorder, collapseByDefault);
+    }
+
+    return renderFavoriteUpgradeCard(entry, state, canReorder, collapseByDefault);
+  }
+
   function renderFavoriteFullscreenColumns(entries, state, canReorder, columnCount) {
     var resolvedColumnCount = Math.min(Math.max(1, Number(columnCount) || 1), entries.length);
     var columns = [];
@@ -315,8 +447,8 @@
   }
 
   function renderFavoriteSection(state, isFavoritesFullscreen, query, favoritesLayout) {
-    var entries = state.favoriteUpgradeIds.map(function (upgradeId) {
-      return window.DMZApp.getUpgradeEntry(upgradeId);
+    var entries = state.favoriteOrder.map(function (favoriteRef) {
+      return getFavoriteEntry(favoriteRef);
     }).filter(function (entry) {
       return Boolean(entry);
     });
@@ -333,14 +465,14 @@
     if (!entries.length) {
       return {
         meta: "No favorites pinned yet",
-        content: "<div class=\"empty-state\"><h3 class=\"empty-state__title\">No favorites yet</h3><p class=\"empty-state__copy\">Use the star on any category page and it will appear here for quick access and progress updates.</p></div>"
+        content: "<div class=\"empty-state\"><h3 class=\"empty-state__title\">No favorites yet</h3><p class=\"empty-state__copy\">Use the star on any category page or on the barter recipes page and it will appear here for quick access.</p></div>"
       };
     }
 
     if (!filteredEntries.length) {
       return {
         meta: "0 favorites matched",
-        content: "<div class=\"empty-state\"><h3 class=\"empty-state__title\">No favorites match that search</h3><p class=\"empty-state__copy\">Try a broader term like a faction name, upgrade type, or objective keyword.</p></div>"
+        content: "<div class=\"empty-state\"><h3 class=\"empty-state__title\">No favorites match that search</h3><p class=\"empty-state__copy\">Try a broader term like a faction name, recipe ingredient, objective keyword, or item type.</p></div>"
       };
     }
 
@@ -589,13 +721,13 @@
     }
 
     function getRenderedFavoriteIds() {
-      return Array.prototype.map.call(favoritesGrid.querySelectorAll(".favorite-card[data-upgrade-id]"), function (card) {
-        return card.dataset.upgradeId;
+      return Array.prototype.map.call(favoritesGrid.querySelectorAll(".favorite-card[data-favorite-ref]"), function (card) {
+        return card.dataset.favoriteRef;
       });
     }
 
     function getVisibleFavoriteCards() {
-      return favoritesGrid.querySelectorAll(".favorite-card[data-upgrade-id]");
+      return favoritesGrid.querySelectorAll(".favorite-card[data-favorite-ref]");
     }
 
     function areAllVisibleFavoritesExpanded() {
@@ -624,7 +756,7 @@
 
     function setAllVisibleFavoritesExpanded(shouldExpand) {
       Array.prototype.forEach.call(getVisibleFavoriteCards(), function (card) {
-        collapsedFavoriteIds[card.dataset.upgradeId] = !shouldExpand;
+        collapsedFavoriteIds[card.dataset.favoriteRef] = !shouldExpand;
         card.open = shouldExpand;
       });
 
@@ -640,12 +772,12 @@
     function syncFavoriteDragClasses() {
       clearFavoriteDragClasses();
 
-      Array.prototype.forEach.call(favoritesGrid.querySelectorAll(".favorite-card[data-upgrade-id]"), function (card) {
-        if (card.dataset.upgradeId === draggedFavoriteId) {
+      Array.prototype.forEach.call(favoritesGrid.querySelectorAll(".favorite-card[data-favorite-ref]"), function (card) {
+        if (card.dataset.favoriteRef === draggedFavoriteId) {
           card.classList.add("is-dragging");
         }
 
-        if (card.dataset.upgradeId === dropTargetFavoriteId) {
+        if (card.dataset.favoriteRef === dropTargetFavoriteId) {
           card.classList.add(dropTargetInsertAfter ? "is-drop-after" : "is-drop-before");
         }
       });
@@ -670,14 +802,14 @@
     }
 
     function getFavoriteDropTarget(event) {
-      var card = event.target.closest(".favorite-card[data-upgrade-id]");
-      var cards = favoritesGrid.querySelectorAll(".favorite-card[data-upgrade-id]");
+      var card = event.target.closest(".favorite-card[data-favorite-ref]");
+      var cards = favoritesGrid.querySelectorAll(".favorite-card[data-favorite-ref]");
       var firstCard;
       var lastCard;
 
       if (card) {
         return {
-          upgradeId: card.dataset.upgradeId,
+          upgradeId: card.dataset.favoriteRef,
           insertAfter: shouldInsertAfter(card, event)
         };
       }
@@ -694,13 +826,13 @@
 
       if (event.clientY < firstCard.getBoundingClientRect().top) {
         return {
-          upgradeId: firstCard.dataset.upgradeId,
+          upgradeId: firstCard.dataset.favoriteRef,
           insertAfter: false
         };
       }
 
       return {
-        upgradeId: lastCard.dataset.upgradeId,
+        upgradeId: lastCard.dataset.favoriteRef,
         insertAfter: true
       };
     }
@@ -777,7 +909,7 @@
 
       Array.prototype.forEach.call(favoritesGrid.querySelectorAll(".favorite-card"), function (card) {
         card.addEventListener("toggle", function () {
-          collapsedFavoriteIds[card.dataset.upgradeId] = !card.open;
+          collapsedFavoriteIds[card.dataset.favoriteRef] = !card.open;
           syncFavoritesToggleAllButton();
         });
       });
@@ -928,23 +1060,23 @@
         return;
       }
 
-      card = handle.closest(".favorite-card[data-upgrade-id]");
-      armedFavoriteId = card ? card.dataset.upgradeId : "";
+      card = handle.closest(".favorite-card[data-favorite-ref]");
+      armedFavoriteId = card ? card.dataset.favoriteRef : "";
     });
 
     favoritesGrid.addEventListener("dragstart", function (event) {
-      var card = event.target.closest(".favorite-card[data-upgrade-id]");
+      var card = event.target.closest(".favorite-card[data-favorite-ref]");
 
       if (!isFavoritesFullscreen || !card) {
         return;
       }
 
-      if (armedFavoriteId !== card.dataset.upgradeId) {
+      if (armedFavoriteId !== card.dataset.favoriteRef) {
         event.preventDefault();
         return;
       }
 
-      draggedFavoriteId = card.dataset.upgradeId;
+      draggedFavoriteId = card.dataset.favoriteRef;
       setFavoriteDropTarget("", false);
 
       if (event.dataTransfer) {
@@ -986,7 +1118,7 @@
       event.preventDefault();
       nextOrder = buildFavoriteOrderFromDrop();
       clearFavoriteDragState();
-      window.DMZStorage.setFavoriteUpgradeOrder(nextOrder);
+      window.DMZStorage.setFavoriteOrder(nextOrder);
     });
 
     favoritesGrid.addEventListener("dragend", function () {
@@ -1011,7 +1143,13 @@
       if (trigger.dataset.action === "toggle-favorite") {
         event.preventDefault();
         event.stopPropagation();
-        window.DMZStorage.toggleFavoriteUpgrade(trigger.dataset.upgradeId);
+
+        if (trigger.dataset.favoriteType === "recipe") {
+          window.DMZStorage.toggleFavoriteRecipe(trigger.dataset.favoriteId || trigger.dataset.recipeKey);
+        } else {
+          window.DMZStorage.toggleFavoriteUpgrade(trigger.dataset.favoriteId || trigger.dataset.upgradeId);
+        }
+
         return;
       }
 

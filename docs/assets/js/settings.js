@@ -49,9 +49,14 @@
   }
 
   function summarizeState(state) {
+    var favoriteCount = Array.isArray(state.favoriteOrder)
+      ? state.favoriteOrder.length
+      : (Array.isArray(state.favoriteUpgradeIds) ? state.favoriteUpgradeIds.length : 0) +
+        (Array.isArray(state.favoriteRecipeKeys) ? state.favoriteRecipeKeys.length : 0);
+
     return {
       trackedTasks: Object.keys(state.taskCounts || {}).length,
-      favoriteCount: Array.isArray(state.favoriteUpgradeIds) ? state.favoriteUpgradeIds.length : 0
+      favoriteCount: favoriteCount
     };
   }
 
@@ -77,7 +82,9 @@
 
     nextState = parsed.state && typeof parsed.state === "object" ? parsed.state : parsed;
     hasTaskCounts = Object.prototype.hasOwnProperty.call(nextState, "taskCounts");
-    hasFavorites = Object.prototype.hasOwnProperty.call(nextState, "favoriteUpgradeIds");
+    hasFavorites = Object.prototype.hasOwnProperty.call(nextState, "favoriteUpgradeIds") ||
+      Object.prototype.hasOwnProperty.call(nextState, "favoriteRecipeKeys") ||
+      Object.prototype.hasOwnProperty.call(nextState, "favoriteOrder");
 
     if (!hasTaskCounts || !hasFavorites) {
       return { error: "This file does not look like a DMZ Tracker backup." };

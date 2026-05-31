@@ -221,6 +221,12 @@
     });
   }
 
+  function getRecipeEntry(recipeKey) {
+    return data.find(function (recipe) {
+      return recipe.key === recipeKey;
+    }) || null;
+  }
+
   function computeStats(recipes) {
     var regionSet = Object.create(null);
     var ingredientSet = Object.create(null);
@@ -346,10 +352,13 @@
     return true;
   }
 
-  function renderRecipeCard(recipe, query) {
+  function renderRecipeCard(recipe, query, state) {
     var escapeHtml = getEscapeHtml();
     var ingredientLabel = recipe.ingredients.length + (recipe.ingredients.length === 1 ? " ingredient" : " ingredients");
     var isCollapsed = shouldCollapseRecipe(recipe.key, query);
+    var isFavorite = window.DMZApp && window.DMZApp.isFavoriteRecipe
+      ? window.DMZApp.isFavoriteRecipe(recipe.key, state)
+      : false;
 
     return "<details class=\"upgrade-card recipe-card\" id=\"" + recipe.key + "\"" + (isCollapsed ? "" : " open") + ">" +
       "<summary class=\"upgrade-card__summary\">" +
@@ -357,6 +366,7 @@
           "<div class=\"upgrade-card__title-row\">" +
             renderIcon(getRecipeIconPath(recipe), recipe.name, "upgrade-card__summary-icon") +
             "<h3 class=\"upgrade-card__title\">" + escapeHtml(recipe.name) + "</h3>" +
+            window.DMZApp.renderFavoriteToggle(recipe.key, isFavorite, "recipe") +
           "</div>" +
           "<div class=\"upgrade-card__chips\">" +
             "<span class=\"chip chip--accent\">" + escapeHtml(getFamilyLabel(recipe.family)) + "</span>" +
@@ -384,7 +394,7 @@
     "</details>";
   }
 
-  function renderGroups(recipes, activeRegion, query) {
+  function renderGroups(recipes, activeRegion, query, state) {
     var escapeHtml = getEscapeHtml();
     var regions = activeRegion === "all" ? REGION_ORDER : [activeRegion];
 
@@ -411,12 +421,23 @@
         "</div>" +
         "<div class=\"upgrade-grid\">" +
           regionRecipes.map(function (recipe) {
-            return renderRecipeCard(recipe, query);
+            return renderRecipeCard(recipe, query, state);
           }).join("") +
         "</div>" +
       "</section>";
     }).join("");
   }
+
+  window.DMZBarter = {
+    getRecipeEntry: getRecipeEntry,
+    getRegionLabel: getRegionLabel,
+    getFamilyLabel: getFamilyLabel,
+    getRecipeIconPath: getRecipeIconPath,
+    getIngredientIconPath: getIngredientIconPath,
+    recipeMatchesQuery: recipeMatchesQuery,
+    renderIngredientRow: renderIngredientRow,
+    renderTypeChip: renderTypeChip
+  };
 
   function revealHashTarget() {
     var hash = window.location.hash ? window.location.hash.slice(1) : "";
@@ -492,13 +513,14 @@
     }
 
     function render() {
+      var state = window.DMZStorage ? window.DMZStorage.getState() : null;
       var visibleRecipes = getVisibleRecipes(activeRegion, query);
       var regionLabel = getRegionLabel(activeRegion);
 
       heroSummary.innerHTML = renderHeroSummary();
       metrics.innerHTML = renderMetricGrid(visibleRecipes);
       filters.innerHTML = renderRegionFilters(activeRegion, query);
-      groups.innerHTML = renderGroups(visibleRecipes, activeRegion, query);
+      groups.innerHTML = renderGroups(visibleRecipes, activeRegion, query, state);
       filterMeta.textContent = query
         ? visibleRecipes.length + " matches in " + regionLabel + " for \"" + query + "\""
         : visibleRecipes.length + " recipes shown in " + regionLabel;
@@ -530,6 +552,18 @@
       render();
     });
 
+    groups.addEventListener("click", function (event) {
+      var trigger = event.target.closest("[data-action]");
+
+      if (!trigger || trigger.dataset.action !== "toggle-favorite") {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      window.DMZStorage.toggleFavoriteRecipe(trigger.dataset.favoriteId || trigger.dataset.recipeKey);
+    });
+
     if (expandAllButton) {
       expandAllButton.addEventListener("click", function () {
         setAllVisibleCardsExpanded(!areAllVisibleCardsExpanded());
@@ -540,6 +574,10 @@
       revealHashTarget();
       syncExpandAllButton();
     });
+
+    if (window.DMZStorage && typeof window.DMZStorage.subscribe === "function") {
+      window.DMZStorage.subscribe(render);
+    }
 
     render();
   });

@@ -8,8 +8,10 @@
     <link rel="icon" type="image/png" href="./assets/images/dmz-logo-cropped.png">
     <link rel="stylesheet" href="./assets/styles.css">
     <script src="./assets/data/dmz-upgrades.js" defer></script>
+    <script src="./assets/data/dmz-barter-recipes.js" defer></script>
     <script src="./assets/js/storage.js" defer></script>
     <script src="./assets/js/shared.js" defer></script>
+    <script src="./assets/js/barter-recipes.js" defer></script>
     <script src="./assets/js/settings.js" defer></script>
     <script src="./assets/js/home.js" defer></script>
   </head>
@@ -85,15 +87,15 @@
           <section class="panel favorites-panel">
             <div class="panel__header">
               <div>
-                <h2 class="section-heading__title">Favorite upgrades</h2>
-                <p class="section-heading__copy">Pin your favorite upgrades from any category page and jump back into them from the homepage.</p>
+                <h2 class="section-heading__title">Favorite upgrades/recipes</h2>
+                <p class="section-heading__copy">Pin your favorite upgrades from category pages or favorite recipes from the barter page, then jump back into them from the homepage.</p>
               </div>
               <div class="panel__header-actions">
                 <div class="favorites-panel__search">
                   <label class="search-field" for="favoritesSearch">
                     <span class="search-field__icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Search favorite upgrades</span>
-                    <input id="favoritesSearch" type="search" placeholder="Search favorite upgrades, factions, or task names">
+                    <span class="visually-hidden">Search favorite upgrades or recipes</span>
+                    <input id="favoritesSearch" type="search" placeholder="Search favorite upgrades, recipes, factions, or ingredients">
                   </label>
                 </div>
                 <p id="favoritesMeta" class="panel__copy"></p>
