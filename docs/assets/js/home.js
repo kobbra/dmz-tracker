@@ -188,12 +188,12 @@
     };
   }
 
-  function shouldCollapseFavorite(upgradeId) {
+  function shouldCollapseFavorite(upgradeId, fallbackValue) {
     if (Object.prototype.hasOwnProperty.call(collapsedFavoriteIds, upgradeId)) {
       return collapsedFavoriteIds[upgradeId];
     }
 
-    return false;
+    return Boolean(fallbackValue);
   }
 
   function clampFavoritesFullscreenColumns(value) {
@@ -236,9 +236,9 @@
       normalizeFavoriteQuery(entry.category.summary).indexOf(normalizedQuery) !== -1;
   }
 
-  function renderFavoriteCard(entry, state, canReorder) {
+  function renderFavoriteCard(entry, state, canReorder, collapseByDefault) {
     var stats = window.DMZApp.getUpgradeStats(entry.upgrade, state);
-    var isCollapsed = shouldCollapseFavorite(entry.upgrade.id);
+    var isCollapsed = shouldCollapseFavorite(entry.upgrade.id, collapseByDefault);
     var unlockLabel = (entry.upgrade.unlock && entry.upgrade.unlock.name ? entry.upgrade.unlock.name : "DMZ") +
       (entry.upgrade.unlock && entry.upgrade.unlock.level ? " " + entry.upgrade.unlock.level : "");
     var preview = entry.upgrade.reward || entry.upgrade.tasks.slice(0, 2).map(function (task) {
@@ -299,7 +299,7 @@
 
     return columns.map(function (columnEntries) {
       return "<div class=\"favorites-column\">" + columnEntries.map(function (entry) {
-        return renderFavoriteCard(entry, state, canReorder);
+        return renderFavoriteCard(entry, state, canReorder, false);
       }).join("") + "</div>";
     }).join("");
   }
@@ -345,7 +345,7 @@
       content: isFavoritesFullscreen
         ? renderFavoriteFullscreenColumns(filteredEntries, state, canReorder, fullscreenColumnCount)
         : filteredEntries.map(function (entry) {
-            return renderFavoriteCard(entry, state, canReorder);
+            return renderFavoriteCard(entry, state, canReorder, true);
           }).join("")
     };
   }
