@@ -1604,16 +1604,21 @@ body.is-favorites-fullscreen .chip {
 }
 
 body.is-favorites-fullscreen .upgrade-card__title-row {
+  min-width: auto;
+  flex-wrap: wrap;
   gap: 0.35rem;
 }
 
 body.is-favorites-fullscreen .upgrade-card__title {
+  min-width: auto;
+  flex: 0 1 auto;
   font-size: 0.82rem;
   line-height: 1.08;
   letter-spacing: 0.03em;
 }
 
 body.is-favorites-fullscreen .favorite-toggle {
+  flex: 0 1 auto;
   width: 1.9rem;
   height: 1.9rem;
 }
@@ -1751,6 +1756,7 @@ body.is-favorites-fullscreen .favorite-card.is-drop-after::after {
   border: 0;
   width: 2.8rem;
   height: 2.8rem;
+  flex: 0 0 auto;
   border-radius: 999px;
   padding: 0;
   display: grid;
@@ -2096,7 +2102,8 @@ body[data-page="category"] .upgrade-grid {
 
 .upgrade-card__title-row {
   display: flex;
-  flex-wrap: wrap;
+  min-width: 0;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 0.65rem;
 }
@@ -2108,6 +2115,8 @@ body[data-page="category"] .upgrade-grid {
 
 .upgrade-card__title {
   margin: 0;
+  min-width: 0;
+  flex: 1 1 auto;
   font-size: clamp(1rem, 1.8vw, 1.16rem);
   text-transform: uppercase;
   letter-spacing: 0.045em;
