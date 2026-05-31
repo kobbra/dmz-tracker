@@ -5,6 +5,9 @@
     fullscreenColumns: 6,
     showSearch: true
   };
+  var DEFAULT_CATEGORY_LAYOUT = {
+    columns: 1
+  };
   var storageAvailable = checkStorage();
   var state = loadState();
 
@@ -42,11 +45,31 @@
     return next;
   }
 
+  function sanitizeCategoryLayout(value) {
+    var next = {
+      columns: DEFAULT_CATEGORY_LAYOUT.columns
+    };
+    var columns;
+
+    if (!value || typeof value !== "object") {
+      return next;
+    }
+
+    columns = Math.floor(Number(value.columns) || 0);
+
+    if (Number.isFinite(columns) && columns >= 1 && columns <= 2) {
+      next.columns = columns;
+    }
+
+    return next;
+  }
+
   function sanitizeState(value) {
     var next = {
       taskCounts: {},
       favoriteUpgradeIds: [],
-      favoritesLayout: sanitizeFavoritesLayout()
+      favoritesLayout: sanitizeFavoritesLayout(),
+      categoryLayout: sanitizeCategoryLayout()
     };
 
     if (!value || typeof value !== "object") {
@@ -75,6 +98,10 @@
 
     if (value.favoritesLayout && typeof value.favoritesLayout === "object") {
       next.favoritesLayout = sanitizeFavoritesLayout(value.favoritesLayout);
+    }
+
+    if (value.categoryLayout && typeof value.categoryLayout === "object") {
+      next.categoryLayout = sanitizeCategoryLayout(value.categoryLayout);
     }
 
     return next;
@@ -116,12 +143,17 @@
     return {
       taskCounts: Object.assign({}, state.taskCounts),
       favoriteUpgradeIds: state.favoriteUpgradeIds.slice(),
-      favoritesLayout: Object.assign({}, state.favoritesLayout)
+      favoritesLayout: Object.assign({}, state.favoritesLayout),
+      categoryLayout: Object.assign({}, state.categoryLayout)
     };
   }
 
   function getFavoritesLayoutSettings() {
     return Object.assign({}, state.favoritesLayout);
+  }
+
+  function getCategoryLayoutSettings() {
+    return Object.assign({}, state.categoryLayout);
   }
 
   function getTaskCount(taskId) {
@@ -237,6 +269,24 @@
     emitChange();
   }
 
+  function setCategoryLayoutSettings(nextSettings) {
+    var nextLayout;
+
+    if (!nextSettings || typeof nextSettings !== "object") {
+      return;
+    }
+
+    nextLayout = sanitizeCategoryLayout(Object.assign({}, state.categoryLayout, nextSettings));
+
+    if (nextLayout.columns === state.categoryLayout.columns) {
+      return;
+    }
+
+    state.categoryLayout = nextLayout;
+    persist();
+    emitChange();
+  }
+
   function reset() {
     state = sanitizeState();
 
@@ -281,6 +331,8 @@
     setFavoriteUpgradeOrder: setFavoriteUpgradeOrder,
     getFavoritesLayoutSettings: getFavoritesLayoutSettings,
     setFavoritesLayoutSettings: setFavoritesLayoutSettings,
+    getCategoryLayoutSettings: getCategoryLayoutSettings,
+    setCategoryLayoutSettings: setCategoryLayoutSettings,
     reset: reset,
     replaceState: replaceState,
     subscribe: subscribe,

@@ -76,6 +76,17 @@
             <div class="panel__header">
               <span id="filterMeta" class="chip"></span>
               <div class="panel__actions">
+                <button id="toggleCategoryLayoutButton" class="settings-trigger category-layout-button" type="button" aria-controls="categoryGroups" aria-label="Switch to two cards per row" title="Switch to two cards per row" aria-pressed="false" data-columns="1">
+                  <span class="settings-trigger__icon category-layout-button__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                      <rect class="category-layout-button__icon-single" x="5" y="6" width="14" height="12" rx="2"></rect>
+                      <g class="category-layout-button__icon-double">
+                        <rect x="4.5" y="6" width="6.25" height="12" rx="1.5"></rect>
+                        <rect x="13.25" y="6" width="6.25" height="12" rx="1.5"></rect>
+                      </g>
+                    </svg>
+                  </span>
+                </button>
                 <button id="toggleCategoryCardsButton" class="settings-trigger toggle-details-button" type="button" aria-controls="categoryGroups" aria-label="Expand all visible upgrade cards" title="Expand all visible upgrade cards" data-state="expand">
                   <span class="settings-trigger__icon toggle-details-button__icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" focusable="false">

@@ -1,6 +1,16 @@
 (function () {
   var collapsedUpgradeIds = Object.create(null);
 
+  function clampCategoryLayoutColumns(value) {
+    var columns = Math.floor(Number(value) || 0);
+
+    if (!Number.isFinite(columns)) {
+      return 1;
+    }
+
+    return Math.max(1, Math.min(2, columns));
+  }
+
   function renderCategoryMetrics(category, stats) {
     return [
       {
@@ -138,8 +148,10 @@
     var filterMeta = document.getElementById("filterMeta");
     var groups = document.getElementById("categoryGroups");
     var searchInput = document.getElementById("categorySearch");
+    var layoutButton = document.getElementById("toggleCategoryLayoutButton");
     var expandAllButton = document.getElementById("toggleCategoryCardsButton");
     var lastStatsKey = "";
+    var categoryLayoutColumns = clampCategoryLayoutColumns(window.DMZStorage.getCategoryLayoutSettings().columns);
     var query = "";
 
     if (!category) {
@@ -197,6 +209,19 @@
       syncExpandAllButton();
     }
 
+    function syncLayoutButton() {
+      var nextColumns = categoryLayoutColumns === 1 ? 2 : 1;
+
+      if (!layoutButton) {
+        return;
+      }
+
+      layoutButton.dataset.columns = String(categoryLayoutColumns);
+      layoutButton.setAttribute("aria-pressed", categoryLayoutColumns === 2 ? "true" : "false");
+      layoutButton.setAttribute("aria-label", "Switch to " + nextColumns + (nextColumns === 1 ? " card" : " cards") + " per row");
+      layoutButton.title = "Switch to " + nextColumns + (nextColumns === 1 ? " card" : " cards") + " per row";
+    }
+
     function render() {
       var state = window.DMZStorage.getState();
       var stats = window.DMZApp.getCategoryStats(category, state);
@@ -213,6 +238,8 @@
         lastStatsKey = statsKey;
       }
 
+      categoryLayoutColumns = clampCategoryLayoutColumns(state.categoryLayout && state.categoryLayout.columns);
+      groups.style.setProperty("--category-grid-columns", String(categoryLayoutColumns));
       groups.innerHTML = renderGroups(category, query, state);
       Array.prototype.forEach.call(groups.querySelectorAll(".upgrade-card"), function (card) {
         card.addEventListener("toggle", function () {
@@ -220,6 +247,7 @@
           syncExpandAllButton();
         });
       });
+      syncLayoutButton();
       syncExpandAllButton();
       window.DMZApp.highlightHashTarget();
     }
@@ -277,6 +305,14 @@
     if (expandAllButton) {
       expandAllButton.addEventListener("click", function () {
         setAllVisibleUpgradeCardsExpanded(!areAllVisibleUpgradeCardsExpanded());
+      });
+    }
+
+    if (layoutButton) {
+      layoutButton.addEventListener("click", function () {
+        window.DMZStorage.setCategoryLayoutSettings({
+          columns: categoryLayoutColumns === 1 ? 2 : 1
+        });
       });
     }
 
