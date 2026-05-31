@@ -696,15 +696,6 @@ body[data-page="category"] .search-field {
   display: none;
 }
 
-.category-groups-panel .panel__actions .category-layout-button[data-columns="2"] {
-  background: rgba(94, 129, 172, 0.18);
-  box-shadow: 0 0 0 1px rgba(136, 192, 208, 0.18);
-}
-
-.category-groups-panel .panel__actions .category-layout-button[data-columns="2"] .settings-trigger__icon {
-  color: var(--nord8);
-}
-
 .category-layout-button[data-columns="2"] .category-layout-button__icon-single {
   display: none;
 }
