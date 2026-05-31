@@ -1380,7 +1380,7 @@ body.is-favorites-fullscreen #favoritesLayoutButton {
 }
 
 .favorites-panel .match-grid {
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(var(--favorites-home-columns, 1), minmax(0, 1fr));
   gap: 1.4rem;
 }
 
@@ -2407,6 +2407,10 @@ body[data-page="category"] .upgrade-grid {
 
   .barter-hero__summary {
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+
+  body[data-page="home"]:not(.is-favorites-fullscreen) .favorites-panel .match-grid {
+    grid-template-columns: 1fr;
   }
 
   body[data-page="category"] .upgrade-grid {

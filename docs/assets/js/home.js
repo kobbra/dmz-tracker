@@ -206,6 +206,16 @@
     return Math.max(2, Math.min(8, columns));
   }
 
+  function clampHomeFavoritesColumns(value) {
+    var columns = Math.floor(Number(value) || 0);
+
+    if (!Number.isFinite(columns)) {
+      return 1;
+    }
+
+    return Math.max(1, Math.min(2, columns));
+  }
+
   function getFavoritesFullscreenColumnCount(preferredColumns) {
     var columns = clampFavoritesFullscreenColumns(preferredColumns);
 
@@ -365,6 +375,7 @@
     var favoritesGrid = document.getElementById("favoritesGrid");
     var favoritesPanelActions = document.getElementById("favoritesPanelActions");
     var favoritesToggleAllButton = document.getElementById("favoritesToggleAllButton");
+    var homeLayoutButton = document.getElementById("favoritesHomeLayoutButton");
     var fullscreenButton = document.getElementById("favoritesFullscreenButton");
     var fullscreenLayoutButton = document.getElementById("favoritesLayoutButton");
     var settingsButton = document.getElementById("settingsButton");
@@ -373,6 +384,7 @@
     var resultsGrid = document.getElementById("searchResults");
     var homeQuery = "";
     var favoriteQuery = "";
+    var homeColumnCount = clampHomeFavoritesColumns(window.DMZStorage.getFavoritesLayoutSettings().homeColumns);
     var fullscreenColumnCount = getFavoritesFullscreenColumnCount(window.DMZStorage.getFavoritesLayoutSettings().fullscreenColumns);
     var isFavoritesFullscreen = false;
     var armedFavoriteId = "";
@@ -550,6 +562,10 @@
         settingsButton.hidden = isFavoritesFullscreen;
       }
 
+      if (homeLayoutButton) {
+        homeLayoutButton.hidden = isFavoritesFullscreen;
+      }
+
       if (fullscreenLayoutButton) {
         fullscreenLayoutButton.hidden = !isFavoritesFullscreen;
       }
@@ -557,6 +573,19 @@
       if (fullscreenSearch) {
         fullscreenSearch.hidden = !isFavoritesFullscreen || !layoutSettings.showSearch;
       }
+    }
+
+    function syncHomeLayoutButton() {
+      var nextColumns = homeColumnCount === 1 ? 2 : 1;
+
+      if (!homeLayoutButton) {
+        return;
+      }
+
+      homeLayoutButton.dataset.columns = String(homeColumnCount);
+      homeLayoutButton.setAttribute("aria-pressed", homeColumnCount === 2 ? "true" : "false");
+      homeLayoutButton.setAttribute("aria-label", "Switch to " + nextColumns + (nextColumns === 1 ? " card" : " cards") + " per row");
+      homeLayoutButton.title = "Switch to " + nextColumns + (nextColumns === 1 ? " card" : " cards") + " per row";
     }
 
     function getRenderedFavoriteIds() {
@@ -727,6 +756,7 @@
         favoriteQuery = "";
       }
 
+      homeColumnCount = clampHomeFavoritesColumns(favoritesLayout.homeColumns);
       fullscreenColumnCount = getFavoritesFullscreenColumnCount(favoritesLayout.fullscreenColumns);
       favoriteState = renderFavoriteSection(state, isFavoritesFullscreen, favoriteQuery, favoritesLayout);
       searchState = renderSearchMatches(homeQuery, state);
@@ -735,8 +765,10 @@
       metrics.innerHTML = renderMetricGrid(stats);
       favoritesMeta.textContent = favoriteState.meta;
       favoritesGrid.innerHTML = favoriteState.content;
+      favoritesGrid.style.setProperty("--favorites-home-columns", String(homeColumnCount));
       favoritesGrid.style.setProperty("--favorites-fullscreen-columns", String(fullscreenColumnCount));
       syncFavoritesSearchInput();
+      syncHomeLayoutButton();
       syncFavoritesFullscreenState(favoritesLayout);
 
       if (layoutDialog && layoutDialog.open) {
@@ -805,6 +837,14 @@
     if (favoritesToggleAllButton) {
       favoritesToggleAllButton.addEventListener("click", function () {
         setAllVisibleFavoritesExpanded(!areAllVisibleFavoritesExpanded());
+      });
+    }
+
+    if (homeLayoutButton) {
+      homeLayoutButton.addEventListener("click", function () {
+        window.DMZStorage.setFavoritesLayoutSettings({
+          homeColumns: homeColumnCount === 1 ? 2 : 1
+        });
       });
     }
 

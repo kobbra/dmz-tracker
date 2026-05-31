@@ -3,7 +3,8 @@
   var TEST_KEY = "dmz-tracker:storage-check";
   var DEFAULT_FAVORITES_LAYOUT = {
     fullscreenColumns: 6,
-    showSearch: true
+    showSearch: true,
+    homeColumns: 1
   };
   var DEFAULT_CATEGORY_LAYOUT = {
     columns: 1
@@ -24,9 +25,11 @@
   function sanitizeFavoritesLayout(value) {
     var next = {
       fullscreenColumns: DEFAULT_FAVORITES_LAYOUT.fullscreenColumns,
-      showSearch: DEFAULT_FAVORITES_LAYOUT.showSearch
+      showSearch: DEFAULT_FAVORITES_LAYOUT.showSearch,
+      homeColumns: DEFAULT_FAVORITES_LAYOUT.homeColumns
     };
     var fullscreenColumns;
+    var homeColumns;
 
     if (!value || typeof value !== "object") {
       return next;
@@ -40,6 +43,12 @@
 
     if (typeof value.showSearch === "boolean") {
       next.showSearch = value.showSearch;
+    }
+
+    homeColumns = Math.floor(Number(value.homeColumns) || 0);
+
+    if (Number.isFinite(homeColumns) && homeColumns >= 1 && homeColumns <= 2) {
+      next.homeColumns = homeColumns;
     }
 
     return next;
@@ -260,7 +269,8 @@
     nextLayout = sanitizeFavoritesLayout(Object.assign({}, state.favoritesLayout, nextSettings));
 
     if (nextLayout.fullscreenColumns === state.favoritesLayout.fullscreenColumns &&
-        nextLayout.showSearch === state.favoritesLayout.showSearch) {
+        nextLayout.showSearch === state.favoritesLayout.showSearch &&
+        nextLayout.homeColumns === state.favoritesLayout.homeColumns) {
       return;
     }
 
