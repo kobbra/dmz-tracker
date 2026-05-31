@@ -1334,20 +1334,33 @@ body.is-favorites-fullscreen #favoritesLayoutButton {
   padding: 1.7rem 1.8rem 1.85rem;
 }
 
+.favorites-panel__heading {
+  flex: 1 1 460px;
+  min-width: min(100%, 360px);
+}
+
 .favorites-panel .panel__header {
   align-items: flex-start;
   margin-bottom: 1.45rem;
 }
 
-.favorites-panel #favoritesMeta {
-  margin-top: 0;
+.favorites-panel__meta {
+  margin: 0;
   white-space: nowrap;
 }
 
 .favorites-panel .panel__header-actions {
-  align-items: center;
-  gap: 0.65rem;
+  align-items: flex-start;
+  gap: 0.45rem;
   text-align: right;
+}
+
+.favorites-panel__status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  margin-left: auto;
 }
 
 .favorites-panel .panel__actions {

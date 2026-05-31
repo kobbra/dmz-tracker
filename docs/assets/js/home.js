@@ -895,7 +895,11 @@
 
       window.DMZApp.renderMeter(meter, stats.percent, "overall completion");
       metrics.innerHTML = renderMetricGrid(stats);
-      favoritesMeta.textContent = favoriteState.meta;
+
+      if (favoritesMeta) {
+        favoritesMeta.textContent = favoriteState.meta;
+      }
+
       favoritesGrid.innerHTML = favoriteState.content;
       favoritesGrid.style.setProperty("--favorites-home-columns", String(homeColumnCount));
       favoritesGrid.style.setProperty("--favorites-fullscreen-columns", String(fullscreenColumnCount));
