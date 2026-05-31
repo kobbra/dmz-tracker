@@ -1544,6 +1544,10 @@ body.is-favorites-fullscreen .favorites-panel .panel__header-actions {
   justify-content: flex-end;
 }
 
+body.is-favorites-fullscreen #favoritesHomeLayoutButton {
+  display: none;
+}
+
 body.is-favorites-fullscreen .favorites-panel__search {
   display: flex;
   justify-content: center;
