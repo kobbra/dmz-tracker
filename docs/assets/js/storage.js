@@ -4,11 +4,16 @@
   var DEFAULT_FAVORITES_LAYOUT = {
     fullscreenColumns: 6,
     showSearch: true,
-    homeColumns: 1
+    homeColumns: 1,
+    showStickyNote: false
   };
   var DEFAULT_CATEGORY_LAYOUT = {
     columns: 1
   };
+  var DEFAULT_STICKY_NOTE = {
+    content: ""
+  };
+  var STICKY_NOTE_FAVORITE_REF = "note:sticky";
   var storageAvailable = checkStorage();
   var state = loadState();
 
@@ -23,7 +28,7 @@
       return null;
     }
 
-    match = value.match(/^(upgrade|recipe):(.+)$/);
+    match = value.match(/^(upgrade|recipe|note):(.+)$/);
 
     if (!match || !match[2]) {
       return null;
@@ -43,7 +48,7 @@
     list.push(value);
   }
 
-  function buildFavoriteOrder(favoriteOrder, favoriteUpgradeIds, favoriteRecipeKeys) {
+  function buildFavoriteOrder(favoriteOrder, favoriteUpgradeIds, favoriteRecipeKeys, showStickyNote) {
     var available = Object.create(null);
     var seen = Object.create(null);
     var ordered = [];
@@ -56,6 +61,10 @@
       available[buildFavoriteRef("recipe", recipeKey)] = true;
     });
 
+    if (showStickyNote) {
+      available[STICKY_NOTE_FAVORITE_REF] = true;
+    }
+
     if (Array.isArray(favoriteOrder)) {
       favoriteOrder.forEach(function (favoriteRef) {
         var parsed = parseFavoriteRef(favoriteRef);
@@ -67,6 +76,11 @@
         seen[favoriteRef] = true;
         ordered.push(favoriteRef);
       });
+    }
+
+    if (showStickyNote && !seen[STICKY_NOTE_FAVORITE_REF]) {
+      seen[STICKY_NOTE_FAVORITE_REF] = true;
+      ordered.unshift(STICKY_NOTE_FAVORITE_REF);
     }
 
     favoriteUpgradeIds.forEach(function (upgradeId) {
@@ -116,7 +130,8 @@
     var next = {
       fullscreenColumns: DEFAULT_FAVORITES_LAYOUT.fullscreenColumns,
       showSearch: DEFAULT_FAVORITES_LAYOUT.showSearch,
-      homeColumns: DEFAULT_FAVORITES_LAYOUT.homeColumns
+      homeColumns: DEFAULT_FAVORITES_LAYOUT.homeColumns,
+      showStickyNote: DEFAULT_FAVORITES_LAYOUT.showStickyNote
     };
     var fullscreenColumns;
     var homeColumns;
@@ -135,10 +150,30 @@
       next.showSearch = value.showSearch;
     }
 
+    if (typeof value.showStickyNote === "boolean") {
+      next.showStickyNote = value.showStickyNote;
+    }
+
     homeColumns = Math.floor(Number(value.homeColumns) || 0);
 
     if (Number.isFinite(homeColumns) && homeColumns >= 1 && homeColumns <= 2) {
       next.homeColumns = homeColumns;
+    }
+
+    return next;
+  }
+
+  function sanitizeStickyNote(value) {
+    var next = {
+      content: DEFAULT_STICKY_NOTE.content
+    };
+
+    if (!value || typeof value !== "object") {
+      return next;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(value, "content") && value.content != null) {
+      next.content = String(value.content);
     }
 
     return next;
@@ -170,7 +205,8 @@
       favoriteRecipeKeys: [],
       favoriteOrder: [],
       favoritesLayout: sanitizeFavoritesLayout(),
-      categoryLayout: sanitizeCategoryLayout()
+      categoryLayout: sanitizeCategoryLayout(),
+      stickyNote: sanitizeStickyNote()
     };
 
     if (!value || typeof value !== "object") {
@@ -199,8 +235,6 @@
       });
     }
 
-    next.favoriteOrder = buildFavoriteOrder(value.favoriteOrder, next.favoriteUpgradeIds, next.favoriteRecipeKeys);
-
     if (value.favoritesLayout && typeof value.favoritesLayout === "object") {
       next.favoritesLayout = sanitizeFavoritesLayout(value.favoritesLayout);
     }
@@ -208,6 +242,17 @@
     if (value.categoryLayout && typeof value.categoryLayout === "object") {
       next.categoryLayout = sanitizeCategoryLayout(value.categoryLayout);
     }
+
+    if (value.stickyNote && typeof value.stickyNote === "object") {
+      next.stickyNote = sanitizeStickyNote(value.stickyNote);
+    }
+
+    next.favoriteOrder = buildFavoriteOrder(
+      value.favoriteOrder,
+      next.favoriteUpgradeIds,
+      next.favoriteRecipeKeys,
+      next.favoritesLayout.showStickyNote
+    );
 
     return next;
   }
@@ -251,7 +296,8 @@
       favoriteRecipeKeys: state.favoriteRecipeKeys.slice(),
       favoriteOrder: state.favoriteOrder.slice(),
       favoritesLayout: Object.assign({}, state.favoritesLayout),
-      categoryLayout: Object.assign({}, state.categoryLayout)
+      categoryLayout: Object.assign({}, state.categoryLayout),
+      stickyNote: Object.assign({}, state.stickyNote)
     };
   }
 
@@ -261,6 +307,10 @@
 
   function getCategoryLayoutSettings() {
     return Object.assign({}, state.categoryLayout);
+  }
+
+  function getStickyNote() {
+    return Object.assign({}, state.stickyNote);
   }
 
   function getTaskCount(taskId) {
@@ -282,6 +332,22 @@
 
     persist();
     emitChange();
+  }
+
+  function setStickyNoteContent(nextContent, options) {
+    var content = nextContent == null ? "" : String(nextContent);
+    var shouldEmit = !options || options.emitChange !== false;
+
+    if (content === state.stickyNote.content) {
+      return;
+    }
+
+    state.stickyNote.content = content;
+    persist();
+
+    if (shouldEmit) {
+      emitChange();
+    }
   }
 
   function isFavoriteUpgrade(upgradeId) {
@@ -365,6 +431,10 @@
       available[buildFavoriteRef("recipe", recipeKey)] = true;
     });
 
+    if (state.favoritesLayout.showStickyNote) {
+      available[STICKY_NOTE_FAVORITE_REF] = true;
+    }
+
     nextFavoriteOrder.forEach(function (favoriteRef) {
       if (!parseFavoriteRef(favoriteRef) || !available[favoriteRef] || seen[favoriteRef]) {
         return;
@@ -373,6 +443,11 @@
       seen[favoriteRef] = true;
       reordered.push(favoriteRef);
     });
+
+    if (state.favoritesLayout.showStickyNote && !seen[STICKY_NOTE_FAVORITE_REF]) {
+      seen[STICKY_NOTE_FAVORITE_REF] = true;
+      reordered.unshift(STICKY_NOTE_FAVORITE_REF);
+    }
 
     state.favoriteUpgradeIds.forEach(function (upgradeId) {
       var favoriteRef = buildFavoriteRef("upgrade", upgradeId);
@@ -417,20 +492,30 @@
 
   function setFavoritesLayoutSettings(nextSettings) {
     var nextLayout;
+    var nextFavoriteOrder;
 
     if (!nextSettings || typeof nextSettings !== "object") {
       return;
     }
 
     nextLayout = sanitizeFavoritesLayout(Object.assign({}, state.favoritesLayout, nextSettings));
+    nextFavoriteOrder = buildFavoriteOrder(
+      state.favoriteOrder,
+      state.favoriteUpgradeIds,
+      state.favoriteRecipeKeys,
+      nextLayout.showStickyNote
+    );
 
     if (nextLayout.fullscreenColumns === state.favoritesLayout.fullscreenColumns &&
         nextLayout.showSearch === state.favoritesLayout.showSearch &&
-        nextLayout.homeColumns === state.favoritesLayout.homeColumns) {
+        nextLayout.homeColumns === state.favoritesLayout.homeColumns &&
+        nextLayout.showStickyNote === state.favoritesLayout.showStickyNote &&
+        favoriteOrdersMatch(nextFavoriteOrder)) {
       return;
     }
 
     state.favoritesLayout = nextLayout;
+    state.favoriteOrder = nextFavoriteOrder;
     persist();
     emitChange();
   }
@@ -492,6 +577,8 @@
     getState: getState,
     getTaskCount: getTaskCount,
     setTaskCount: setTaskCount,
+    getStickyNote: getStickyNote,
+    setStickyNoteContent: setStickyNoteContent,
     isFavoriteUpgrade: isFavoriteUpgrade,
     isFavoriteRecipe: isFavoriteRecipe,
     toggleFavoriteUpgrade: toggleFavoriteUpgrade,
@@ -505,6 +592,7 @@
     reset: reset,
     replaceState: replaceState,
     subscribe: subscribe,
-    getStatus: getStatus
+    getStatus: getStatus,
+    STICKY_NOTE_FAVORITE_REF: STICKY_NOTE_FAVORITE_REF
   };
 }());

@@ -1,6 +1,9 @@
 (function () {
   var collapsedFavoriteIds = Object.create(null);
   var FAVORITES_FULLSCREEN_CLASS = "is-favorites-fullscreen";
+  var STICKY_NOTE_FAVORITE_REF = window.DMZStorage && window.DMZStorage.STICKY_NOTE_FAVORITE_REF
+    ? window.DMZStorage.STICKY_NOTE_FAVORITE_REF
+    : "note:sticky";
 
   function renderMetricGrid(stats) {
     return [
@@ -235,7 +238,7 @@
   }
 
   function parseFavoriteRef(value) {
-    var match = typeof value === "string" ? value.match(/^(upgrade|recipe):(.+)$/) : null;
+    var match = typeof value === "string" ? value.match(/^(upgrade|recipe|note):(.+)$/) : null;
 
     if (!match || !match[2]) {
       return null;
@@ -247,7 +250,17 @@
     };
   }
 
-  function getFavoriteEntry(favoriteRef) {
+  function isStickyNoteEntry(entry) {
+    return Boolean(entry && entry.type === "note");
+  }
+
+  function countPinnedFavorites(entries) {
+    return entries.reduce(function (count, entry) {
+      return count + (isStickyNoteEntry(entry) ? 0 : 1);
+    }, 0);
+  }
+
+  function getFavoriteEntry(favoriteRef, state) {
     var parsed = parseFavoriteRef(favoriteRef);
     var upgradeEntry;
     var recipeEntry;
@@ -268,6 +281,18 @@
         favoriteRef: favoriteRef,
         category: upgradeEntry.category,
         upgrade: upgradeEntry.upgrade
+      };
+    }
+
+    if (parsed.type === "note") {
+      if (favoriteRef !== STICKY_NOTE_FAVORITE_REF) {
+        return null;
+      }
+
+      return {
+        type: "note",
+        favoriteRef: favoriteRef,
+        note: state && state.stickyNote ? state.stickyNote : window.DMZStorage.getStickyNote()
       };
     }
 
@@ -304,6 +329,10 @@
     var normalizedQuery = normalizeFavoriteQuery(query);
 
     if (!normalizedQuery) {
+      return true;
+    }
+
+    if (isStickyNoteEntry(entry)) {
       return true;
     }
 
@@ -416,7 +445,44 @@
     "</details>";
   }
 
+  function renderFavoriteNoteCard(entry, canReorder) {
+    var escapeHtml = window.DMZApp.escapeHtml;
+    var noteContent = entry.note && typeof entry.note.content === "string"
+      ? entry.note.content
+      : "";
+
+    return "<article class=\"match-card favorite-card favorite-card--note\" data-favorite-ref=\"" + entry.favoriteRef + "\" data-favorite-type=\"note\"" + (canReorder ? " draggable=\"true\"" : "") + ">" +
+      "<div class=\"favorite-card__summary favorite-card__summary--note\">" +
+        "<div class=\"favorite-card__summary-main\">" +
+          "<div class=\"match-card__meta\">" +
+            "<span class=\"chip chip--accent\">Workspace</span>" +
+            "<span class=\"chip\">Sticky note</span>" +
+          "</div>" +
+          "<h3 class=\"upgrade-card__title\">Sticky note</h3>" +
+          "<p class=\"favorite-card__summary-copy\">Keep one pinned note in the fullscreen workspace. It stays in this browser and travels with backups.</p>" +
+        "</div>" +
+        (canReorder
+          ? "<div class=\"favorite-card__summary-actions\">" +
+              "<button class=\"favorite-card__drag-handle\" type=\"button\" data-action=\"drag-handle\" aria-label=\"Drag to reorder sticky note\" title=\"Drag to reorder sticky note\">" +
+                "<span class=\"favorite-card__drag-handle-icon\" aria-hidden=\"true\"></span>" +
+              "</button>" +
+            "</div>"
+          : "") +
+      "</div>" +
+      "<div class=\"favorite-card__details favorite-card__details--note\">" +
+        "<label class=\"favorite-note\" for=\"favoriteStickyNoteInput\">" +
+          "<span class=\"favorite-note__label\">Your note</span>" +
+          "<textarea id=\"favoriteStickyNoteInput\" class=\"favorite-note__textarea\" rows=\"8\" placeholder=\"Drop quick reminders, loot routes, or next-session tasks here.\">" + escapeHtml(noteContent) + "</textarea>" +
+        "</label>" +
+      "</div>" +
+    "</article>";
+  }
+
   function renderFavoriteCard(entry, state, canReorder, collapseByDefault) {
+    if (isStickyNoteEntry(entry)) {
+      return renderFavoriteNoteCard(entry, canReorder);
+    }
+
     if (entry.type === "recipe") {
       return renderFavoriteRecipeCard(entry, canReorder, collapseByDefault);
     }
@@ -447,18 +513,26 @@
   }
 
   function renderFavoriteSection(state, isFavoritesFullscreen, query, favoritesLayout) {
-    var entries = state.favoriteOrder.map(function (favoriteRef) {
-      return getFavoriteEntry(favoriteRef);
+    var allEntries = state.favoriteOrder.map(function (favoriteRef) {
+      return getFavoriteEntry(favoriteRef, state);
     }).filter(function (entry) {
       return Boolean(entry);
     });
+    var entries = isFavoritesFullscreen
+      ? allEntries
+      : allEntries.filter(function (entry) {
+          return !isStickyNoteEntry(entry);
+        });
     var normalizedQuery = isFavoritesFullscreen ? normalizeFavoriteQuery(query) : "";
     var fullscreenColumnCount = getFavoritesFullscreenColumnCount(favoritesLayout && favoritesLayout.fullscreenColumns);
+    var favoriteCount = countPinnedFavorites(entries);
+    var stickyNoteVisible = entries.some(isStickyNoteEntry);
     var filteredEntries = normalizedQuery
       ? entries.filter(function (entry) {
           return favoriteEntryMatchesQuery(entry, normalizedQuery);
         })
       : entries;
+    var filteredFavoriteCount = countPinnedFavorites(filteredEntries);
     var canReorder = isFavoritesFullscreen && filteredEntries.length > 1 && !normalizedQuery;
     var meta;
 
@@ -477,9 +551,15 @@
     }
 
     if (normalizedQuery) {
-      meta = filteredEntries.length + " of " + entries.length + " favorites matched";
+      if (!favoriteCount && stickyNoteVisible) {
+        meta = "Sticky note enabled";
+      } else {
+        meta = filteredFavoriteCount + " of " + favoriteCount + " favorites matched" + (stickyNoteVisible ? " • Sticky note shown" : "");
+      }
+    } else if (!favoriteCount && stickyNoteVisible) {
+      meta = "Sticky note enabled";
     } else {
-      meta = filteredEntries.length + (filteredEntries.length === 1 ? " favorite pinned" : " favorites pinned") + (canReorder ? " • Drag cards to reorder" : "");
+      meta = favoriteCount + (favoriteCount === 1 ? " favorite pinned" : " favorites pinned") + (stickyNoteVisible ? " • Sticky note shown" : "") + (canReorder ? " • Drag cards to reorder" : "");
     }
 
     return {
@@ -526,6 +606,7 @@
     var layoutDialog = fullscreenLayoutButton ? createFavoritesLayoutDialog() : null;
     var layoutColumnsInput = layoutDialog ? layoutDialog.querySelector("#favoritesLayoutColumns") : null;
     var layoutSearchToggle = layoutDialog ? layoutDialog.querySelector("#favoritesLayoutSearchToggle") : null;
+    var layoutNoteToggle = layoutDialog ? layoutDialog.querySelector("#favoritesLayoutStickyNoteToggle") : null;
     var layoutPreviousFocus = null;
 
     function createFavoritesLayoutDialog() {
@@ -567,6 +648,17 @@
                 '</span>' +
               '</label>' +
             '</section>' +
+            '<section class="settings-dialog__card">' +
+              '<p class="settings-dialog__card-title">Sticky note</p>' +
+              '<p class="settings-dialog__card-copy">Show or hide a saved sticky note card in the fullscreen favorites workspace.</p>' +
+              '<label class="layout-settings-dialog__toggle">' +
+                '<input id="favoritesLayoutStickyNoteToggle" class="layout-settings-dialog__checkbox" type="checkbox">' +
+                '<span class="layout-settings-dialog__toggle-copy">' +
+                  '<span class="layout-settings-dialog__label">Show sticky note</span>' +
+                  '<span class="layout-settings-dialog__hint">Keep one movable note card available alongside your pinned favorites.</span>' +
+                '</span>' +
+              '</label>' +
+            '</section>' +
           '</div>' +
           '<p class="layout-settings-dialog__note">Changes save automatically in this browser.</p>' +
         '</div>';
@@ -600,6 +692,7 @@
 
       layoutColumnsInput.value = String(clampFavoritesFullscreenColumns(layoutSettings.fullscreenColumns));
       layoutSearchToggle.checked = Boolean(layoutSettings.showSearch);
+      layoutNoteToggle.checked = Boolean(layoutSettings.showStickyNote);
     }
 
     function closeFavoritesLayoutDialog() {
@@ -727,7 +820,7 @@
     }
 
     function getVisibleFavoriteCards() {
-      return favoritesGrid.querySelectorAll(".favorite-card[data-favorite-ref]");
+      return favoritesGrid.querySelectorAll("details.favorite-card[data-favorite-ref]");
     }
 
     function areAllVisibleFavoritesExpanded() {
@@ -911,7 +1004,7 @@
         renderFavoritesLayoutDialog(favoritesLayout);
       }
 
-      Array.prototype.forEach.call(favoritesGrid.querySelectorAll(".favorite-card"), function (card) {
+      Array.prototype.forEach.call(favoritesGrid.querySelectorAll("details.favorite-card"), function (card) {
         card.addEventListener("toggle", function () {
           collapsedFavoriteIds[card.dataset.favoriteRef] = !card.open;
           syncFavoritesToggleAllButton();
@@ -1027,6 +1120,11 @@
         }
 
         window.DMZStorage.setFavoritesLayoutSettings({ showSearch: layoutSearchToggle.checked });
+      });
+
+      layoutNoteToggle.addEventListener("change", function () {
+        clearFavoriteDragState();
+        window.DMZStorage.setFavoritesLayoutSettings({ showStickyNote: layoutNoteToggle.checked });
       });
     }
 
@@ -1174,6 +1272,11 @@
     });
 
     favoritesGrid.addEventListener("change", function (event) {
+      if (event.target.matches(".favorite-note__textarea")) {
+        window.DMZStorage.setStickyNoteContent(event.target.value);
+        return;
+      }
+
       if (!event.target.matches(".task-input")) {
         return;
       }
@@ -1185,6 +1288,14 @@
           event.target.value
         )
       );
+    });
+
+    favoritesGrid.addEventListener("input", function (event) {
+      if (!event.target.matches(".favorite-note__textarea")) {
+        return;
+      }
+
+      window.DMZStorage.setStickyNoteContent(event.target.value, { emitChange: false });
     });
 
     window.DMZStorage.subscribe(render);

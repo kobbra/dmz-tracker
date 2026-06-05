@@ -50,13 +50,20 @@
 
   function summarizeState(state) {
     var favoriteCount = Array.isArray(state.favoriteOrder)
-      ? state.favoriteOrder.length
+      ? state.favoriteOrder.filter(function (favoriteRef) {
+          return typeof favoriteRef === "string" && favoriteRef.indexOf("note:") !== 0;
+        }).length
       : (Array.isArray(state.favoriteUpgradeIds) ? state.favoriteUpgradeIds.length : 0) +
         (Array.isArray(state.favoriteRecipeKeys) ? state.favoriteRecipeKeys.length : 0);
+    var hasStickyNote = Boolean(
+      (state.stickyNote && state.stickyNote.content) ||
+      (state.favoritesLayout && state.favoritesLayout.showStickyNote)
+    );
 
     return {
       trackedTasks: Object.keys(state.taskCounts || {}).length,
-      favoriteCount: favoriteCount
+      favoriteCount: favoriteCount,
+      hasStickyNote: hasStickyNote
     };
   }
 
@@ -114,7 +121,7 @@
             '<span aria-hidden="true">&times;</span>' +
           '</button>' +
         '</div>' +
-        '<p class="settings-dialog__copy">Manage the DMZ progress saved in this browser. Backups and resets include both tracked task counts and favorites.</p>' +
+        '<p class="settings-dialog__copy">Manage the DMZ progress saved in this browser. Backups and resets include tracked task counts, favorites, and the fullscreen sticky note.</p>' +
         '<div class="settings-dialog__summary" aria-label="Current saved progress summary">' +
           '<span id="settingsSnapshotTasks" class="settings-dialog__stat"></span>' +
           '<span id="settingsSnapshotFavorites" class="settings-dialog__stat"></span>' +
@@ -123,14 +130,14 @@
         '<div class="settings-dialog__grid">' +
           '<section class="settings-dialog__card">' +
             '<p class="settings-dialog__card-title">Backup progress</p>' +
-            '<p class="settings-dialog__card-copy">Download a JSON backup of the progress and favorites stored in this browser.</p>' +
+            '<p class="settings-dialog__card-copy">Download a JSON backup of the progress, favorites, and sticky note stored in this browser.</p>' +
             '<div class="settings-dialog__action-row">' +
               '<button class="button button--primary" type="button" data-action="download-backup">Download backup</button>' +
             '</div>' +
           '</section>' +
           '<section class="settings-dialog__card">' +
             '<p class="settings-dialog__card-title">Restore progress</p>' +
-            '<p class="settings-dialog__card-copy">Choose a JSON backup file to replace the current saved progress and favorites.</p>' +
+            '<p class="settings-dialog__card-copy">Choose a JSON backup file to replace the current saved progress, favorites, and sticky note.</p>' +
             '<input id="settingsRestoreInput" class="visually-hidden" type="file" accept=".json,application/json">' +
             '<div class="settings-dialog__action-row">' +
               '<button class="button button--ghost" type="button" data-action="choose-restore">Choose backup file</button>' +
@@ -146,12 +153,12 @@
           '</section>' +
           '<section class="settings-dialog__card settings-dialog__card--danger">' +
             '<p class="settings-dialog__card-title">Reset progress</p>' +
-            '<p class="settings-dialog__card-copy">Clear every saved task count and favorite from this browser.</p>' +
+            '<p class="settings-dialog__card-copy">Clear every saved task count, favorite, and sticky note from this browser.</p>' +
             '<div class="settings-dialog__action-row">' +
               '<button class="button button--ghost settings-dialog__button--danger" type="button" data-action="request-reset">Reset all progress</button>' +
             '</div>' +
             '<div id="settingsResetConfirm" class="settings-dialog__confirm settings-dialog__confirm--danger" hidden>' +
-              '<p class="settings-dialog__confirm-copy">This will remove all tracked progress and favorites saved in this browser.</p>' +
+              '<p class="settings-dialog__confirm-copy">This will remove all tracked progress, favorites, and sticky note content saved in this browser.</p>' +
               '<div class="settings-dialog__action-row settings-dialog__action-row--stack">' +
                 '<button class="button button--danger button--small" type="button" data-action="confirm-reset">Confirm reset</button>' +
                 '<button class="button button--ghost button--small" type="button" data-action="cancel-reset">Cancel</button>' +
@@ -199,7 +206,7 @@
       var summary = summarizeState(window.DMZStorage.getState());
 
       snapshotTasks.textContent = formatCount(summary.trackedTasks, "tracked task", "tracked tasks");
-      snapshotFavorites.textContent = formatCount(summary.favoriteCount, "favorite saved", "favorites saved");
+      snapshotFavorites.textContent = formatCount(summary.favoriteCount, "favorite saved", "favorites saved") + (summary.hasStickyNote ? " + sticky note" : "");
     }
 
     function clearRestoreState() {
