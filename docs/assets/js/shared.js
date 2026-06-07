@@ -491,13 +491,33 @@
     return Math.round(value) + "%";
   }
 
+  function clampPercent(value) {
+    if (typeof value !== "number" || !isFinite(value)) {
+      return 0;
+    }
+
+    return Math.max(0, Math.min(100, value));
+  }
+
+  function getMeterProgressColor(percent) {
+    var safePercent = clampPercent(percent);
+    var hue = safePercent * 1.2;
+
+    return "hsl(" + hue.toFixed(2) + "deg 72% 58%)";
+  }
+
   function renderMeter(container, percent, label) {
+    var safePercent;
+
     if (!container) {
       return;
     }
 
-    container.style.setProperty("--progress", percent.toFixed(2) + "%");
-    container.innerHTML = "<div class=\"meter__content\"><div class=\"meter__value\">" + escapeHtml(formatPercent(percent)) + "</div><span class=\"meter__label\">" + escapeHtml(label) + "</span></div>";
+    safePercent = clampPercent(percent);
+
+    container.style.setProperty("--progress", safePercent.toFixed(2) + "%");
+    container.style.setProperty("--progress-end", getMeterProgressColor(safePercent));
+    container.innerHTML = "<div class=\"meter__content\"><div class=\"meter__value\">" + escapeHtml(formatPercent(safePercent)) + "</div><span class=\"meter__label\">" + escapeHtml(label) + "</span></div>";
   }
 
   function highlightHashTarget() {
