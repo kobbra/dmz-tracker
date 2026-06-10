@@ -392,7 +392,7 @@ body[data-page="home"] .hero__panel .meter {
   place-items: center;
   background:
     radial-gradient(circle at center, rgba(36, 41, 50, 0.98) 0 56%, transparent 56% 100%),
-    conic-gradient(from -90deg, var(--progress-start) 0deg, var(--progress-end) var(--progress), rgba(136, 192, 208, 0.16) var(--progress) 360deg);
+    conic-gradient(var(--progress-start) 0deg, var(--progress-end) var(--progress), rgba(136, 192, 208, 0.16) var(--progress) 360deg);
 }
 
 .meter::before {
