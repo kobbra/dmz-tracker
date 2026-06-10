@@ -167,24 +167,55 @@
     return String(value || "").toLowerCase().trim();
   }
 
-  function getCategories() {
-    return data.slice();
+  function isCrownUpgrade(upgrade) {
+    return Boolean(upgrade && upgrade.unlock && normalize(upgrade.unlock.name) === "crown");
   }
 
-  function getCategory(slug) {
-    return data.find(function (category) {
+  function shouldShowCrownUpgrades(state) {
+    return !state || !state.upgradeVisibility || state.upgradeVisibility.showCrownUpgrades !== false;
+  }
+
+  function filterVisibleUpgrades(upgrades, state) {
+    if (!Array.isArray(upgrades)) {
+      return [];
+    }
+
+    if (shouldShowCrownUpgrades(state)) {
+      return upgrades.slice();
+    }
+
+    return upgrades.filter(function (upgrade) {
+      return !isCrownUpgrade(upgrade);
+    });
+  }
+
+  function cloneCategory(category, state) {
+    return Object.assign({}, category, {
+      upgrades: filterVisibleUpgrades(category.upgrades, state)
+    });
+  }
+
+  function getCategories(state) {
+    return data.map(function (category) {
+      return cloneCategory(category, state);
+    });
+  }
+
+  function getCategory(slug, state) {
+    return getCategories(state).find(function (category) {
       return category.slug === slug;
     }) || null;
   }
 
-  function getUpgradeEntry(upgradeId) {
+  function getUpgradeEntry(upgradeId, state) {
     var categoryIndex;
     var upgradeIndex;
     var category;
     var upgrade;
+    var categories = getCategories(state);
 
-    for (categoryIndex = 0; categoryIndex < data.length; categoryIndex += 1) {
-      category = data[categoryIndex];
+    for (categoryIndex = 0; categoryIndex < categories.length; categoryIndex += 1) {
+      category = categories[categoryIndex];
 
       for (upgradeIndex = 0; upgradeIndex < category.upgrades.length; upgradeIndex += 1) {
         upgrade = category.upgrades[upgradeIndex];
@@ -273,7 +304,8 @@
   }
 
   function getCategoryStats(category, state) {
-    var upgradeStats = category.upgrades.map(function (upgrade) {
+    var visibleUpgrades = filterVisibleUpgrades(category.upgrades, state);
+    var upgradeStats = visibleUpgrades.map(function (upgrade) {
       return getUpgradeStats(upgrade, state);
     });
     var completedUpgrades = upgradeStats.filter(function (upgrade) {
@@ -293,7 +325,7 @@
 
     return {
       completedUpgrades: completedUpgrades,
-      totalUpgrades: category.upgrades.length,
+      totalUpgrades: visibleUpgrades.length,
       completedTasks: completedTasks,
       totalTasks: totalTasks,
       percent: percent
@@ -301,7 +333,7 @@
   }
 
   function getOverallStats(state) {
-    var categories = getCategories();
+    var categories = getCategories(state);
     var categoryStats = categories.map(function (category) {
       return getCategoryStats(category, state);
     });
@@ -332,11 +364,15 @@
     };
   }
 
-  function upgradeMatchesQuery(upgrade, query) {
+  function upgradeMatchesQuery(upgrade, query, state) {
     var normalizedQuery = normalize(query);
 
     if (!normalizedQuery) {
       return true;
+    }
+
+    if (!shouldShowCrownUpgrades(state) && isCrownUpgrade(upgrade)) {
+      return false;
     }
 
     return normalize([
@@ -349,19 +385,24 @@
     ].join(" ")).indexOf(normalizedQuery) !== -1;
   }
 
-  function categoryMatchesQuery(category, query) {
+  function categoryMatchesQuery(category, query, state) {
     var normalizedQuery = normalize(query);
+    var visibleUpgrades = filterVisibleUpgrades(category.upgrades, state);
 
     if (!normalizedQuery) {
       return true;
     }
 
-    if (normalize(category.title + " " + category.summary).indexOf(normalizedQuery) !== -1) {
+    if (normalize(category.title).indexOf(normalizedQuery) !== -1) {
       return true;
     }
 
-    return category.upgrades.some(function (upgrade) {
-      return upgradeMatchesQuery(upgrade, normalizedQuery);
+    if (shouldShowCrownUpgrades(state) && normalize(category.title + " " + category.summary).indexOf(normalizedQuery) !== -1) {
+      return true;
+    }
+
+    return visibleUpgrades.some(function (upgrade) {
+      return upgradeMatchesQuery(upgrade, normalizedQuery, state);
     });
   }
 
@@ -380,9 +421,9 @@
       return [];
     }
 
-    return getCategories().reduce(function (matches, category) {
+    return getCategories(state).reduce(function (matches, category) {
       var matchingUpgrades = category.upgrades.filter(function (upgrade) {
-        return upgradeMatchesQuery(upgrade, normalizedQuery);
+        return upgradeMatchesQuery(upgrade, normalizedQuery, state);
       }).map(function (upgrade) {
         return {
           category: category,
@@ -396,7 +437,7 @@
     }, []);
   }
 
-  function groupUpgrades(category) {
+  function groupUpgrades(category, state) {
     var rules = GROUP_RULES[category.slug] || [
       {
         key: "default",
@@ -416,7 +457,7 @@
       };
     });
 
-    category.upgrades.forEach(function (upgrade) {
+    filterVisibleUpgrades(category.upgrades, state).forEach(function (upgrade) {
       var match = rules.find(function (rule) {
         return rule.test(upgrade);
       });

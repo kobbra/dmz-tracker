@@ -99,13 +99,13 @@
   }
 
   function renderGroups(category, query, state) {
-    var groups = window.DMZApp.groupUpgrades(category).map(function (group) {
+    var groups = window.DMZApp.groupUpgrades(category, state).map(function (group) {
       return {
         key: group.key,
         title: group.title,
         copy: group.copy,
         upgrades: group.upgrades.filter(function (upgrade) {
-          return window.DMZApp.upgradeMatchesQuery(upgrade, query);
+          return window.DMZApp.upgradeMatchesQuery(upgrade, query, state);
         })
       };
     }).filter(function (group) {
@@ -224,13 +224,14 @@
 
     function render() {
       var state = window.DMZStorage.getState();
-      var stats = window.DMZApp.getCategoryStats(category, state);
+      var currentCategory = window.DMZApp.getCategory(slug, state) || category;
+      var stats = window.DMZApp.getCategoryStats(currentCategory, state);
       var statsKey = getStatsKey(stats);
-      var matchingCount = category.upgrades.filter(function (upgrade) {
-        return window.DMZApp.upgradeMatchesQuery(upgrade, query);
+      var matchingCount = currentCategory.upgrades.filter(function (upgrade) {
+        return window.DMZApp.upgradeMatchesQuery(upgrade, query, state);
       }).length;
 
-      filterMeta.textContent = (query ? matchingCount + " of " + category.upgrades.length + " upgrades shown" : category.upgrades.length + " upgrades") + " | " + stats.completedTasks + "/" + stats.totalTasks + " tasks complete";
+      filterMeta.textContent = (query ? matchingCount + " of " + currentCategory.upgrades.length + " upgrades shown" : currentCategory.upgrades.length + " upgrades") + " | " + stats.completedTasks + "/" + stats.totalTasks + " tasks complete";
 
       if (statsKey !== lastStatsKey) {
         window.DMZApp.renderMeter(meter, stats.percent, category.title + " progress");
@@ -240,7 +241,7 @@
 
       categoryLayoutColumns = clampCategoryLayoutColumns(state.categoryLayout && state.categoryLayout.columns);
       groups.style.setProperty("--category-grid-columns", String(categoryLayoutColumns));
-      groups.innerHTML = renderGroups(category, query, state);
+      groups.innerHTML = renderGroups(currentCategory, query, state);
       Array.prototype.forEach.call(groups.querySelectorAll(".upgrade-card"), function (card) {
         card.addEventListener("toggle", function () {
           collapsedUpgradeIds[card.id] = !card.open;

@@ -13,6 +13,9 @@
   var DEFAULT_STICKY_NOTE = {
     content: ""
   };
+  var DEFAULT_UPGRADE_VISIBILITY = {
+    showCrownUpgrades: true
+  };
   var STICKY_NOTE_FAVORITE_REF = "note:sticky";
   var storageAvailable = checkStorage();
   var state = loadState();
@@ -179,6 +182,22 @@
     return next;
   }
 
+  function sanitizeUpgradeVisibility(value) {
+    var next = {
+      showCrownUpgrades: DEFAULT_UPGRADE_VISIBILITY.showCrownUpgrades
+    };
+
+    if (!value || typeof value !== "object") {
+      return next;
+    }
+
+    if (typeof value.showCrownUpgrades === "boolean") {
+      next.showCrownUpgrades = value.showCrownUpgrades;
+    }
+
+    return next;
+  }
+
   function sanitizeCategoryLayout(value) {
     var next = {
       columns: DEFAULT_CATEGORY_LAYOUT.columns
@@ -205,6 +224,7 @@
       favoriteRecipeKeys: [],
       favoriteOrder: [],
       favoritesLayout: sanitizeFavoritesLayout(),
+      upgradeVisibility: sanitizeUpgradeVisibility(),
       categoryLayout: sanitizeCategoryLayout(),
       stickyNote: sanitizeStickyNote()
     };
@@ -237,6 +257,10 @@
 
     if (value.favoritesLayout && typeof value.favoritesLayout === "object") {
       next.favoritesLayout = sanitizeFavoritesLayout(value.favoritesLayout);
+    }
+
+    if (value.upgradeVisibility && typeof value.upgradeVisibility === "object") {
+      next.upgradeVisibility = sanitizeUpgradeVisibility(value.upgradeVisibility);
     }
 
     if (value.categoryLayout && typeof value.categoryLayout === "object") {
@@ -296,6 +320,7 @@
       favoriteRecipeKeys: state.favoriteRecipeKeys.slice(),
       favoriteOrder: state.favoriteOrder.slice(),
       favoritesLayout: Object.assign({}, state.favoritesLayout),
+      upgradeVisibility: Object.assign({}, state.upgradeVisibility),
       categoryLayout: Object.assign({}, state.categoryLayout),
       stickyNote: Object.assign({}, state.stickyNote)
     };
@@ -303,6 +328,10 @@
 
   function getFavoritesLayoutSettings() {
     return Object.assign({}, state.favoritesLayout);
+  }
+
+  function getUpgradeVisibilitySettings() {
+    return Object.assign({}, state.upgradeVisibility);
   }
 
   function getCategoryLayoutSettings() {
@@ -520,6 +549,24 @@
     emitChange();
   }
 
+  function setUpgradeVisibilitySettings(nextSettings) {
+    var nextVisibility;
+
+    if (!nextSettings || typeof nextSettings !== "object") {
+      return;
+    }
+
+    nextVisibility = sanitizeUpgradeVisibility(Object.assign({}, state.upgradeVisibility, nextSettings));
+
+    if (nextVisibility.showCrownUpgrades === state.upgradeVisibility.showCrownUpgrades) {
+      return;
+    }
+
+    state.upgradeVisibility = nextVisibility;
+    persist();
+    emitChange();
+  }
+
   function setCategoryLayoutSettings(nextSettings) {
     var nextLayout;
 
@@ -587,6 +634,8 @@
     setFavoriteUpgradeOrder: setFavoriteUpgradeOrder,
     getFavoritesLayoutSettings: getFavoritesLayoutSettings,
     setFavoritesLayoutSettings: setFavoritesLayoutSettings,
+    getUpgradeVisibilitySettings: getUpgradeVisibilitySettings,
+    setUpgradeVisibilitySettings: setUpgradeVisibilitySettings,
     getCategoryLayoutSettings: getCategoryLayoutSettings,
     setCategoryLayoutSettings: setCategoryLayoutSettings,
     reset: reset,

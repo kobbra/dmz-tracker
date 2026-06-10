@@ -121,7 +121,7 @@
             '<span aria-hidden="true">&times;</span>' +
           '</button>' +
         '</div>' +
-        '<p class="settings-dialog__copy">Manage the DMZ progress saved in this browser. Backups and resets include tracked task counts, favorites, and the fullscreen sticky note.</p>' +
+        '<p class="settings-dialog__copy">Manage the DMZ progress saved in this browser. Backups and resets include tracked task counts, favorites, the fullscreen sticky note, and the Crown visibility preference.</p>' +
         '<div class="settings-dialog__summary" aria-label="Current saved progress summary">' +
           '<span id="settingsSnapshotTasks" class="settings-dialog__stat"></span>' +
           '<span id="settingsSnapshotFavorites" class="settings-dialog__stat"></span>' +
@@ -130,14 +130,25 @@
         '<div class="settings-dialog__grid">' +
           '<section class="settings-dialog__card">' +
             '<p class="settings-dialog__card-title">Backup progress</p>' +
-            '<p class="settings-dialog__card-copy">Download a JSON backup of the progress, favorites, and sticky note stored in this browser.</p>' +
+            '<p class="settings-dialog__card-copy">Download a JSON backup of the progress, favorites, sticky note, and visibility settings stored in this browser.</p>' +
             '<div class="settings-dialog__action-row">' +
               '<button class="button button--primary" type="button" data-action="download-backup">Download backup</button>' +
             '</div>' +
           '</section>' +
           '<section class="settings-dialog__card">' +
+            '<p class="settings-dialog__card-title">Crown upgrades</p>' +
+            '<p class="settings-dialog__card-copy">Show or hide Crown faction upgrades across categories, search, and favorites without deleting saved progress.</p>' +
+            '<label class="layout-settings-dialog__toggle">' +
+              '<input id="settingsCrownUpgradesToggle" class="layout-settings-dialog__checkbox" type="checkbox">' +
+              '<span class="layout-settings-dialog__toggle-copy">' +
+                '<span class="layout-settings-dialog__label">Show Crown upgrades</span>' +
+                '<span class="layout-settings-dialog__hint">Turn this off to hide Crown cards while keeping their saved counts for later.</span>' +
+              '</span>' +
+            '</label>' +
+          '</section>' +
+          '<section class="settings-dialog__card">' +
             '<p class="settings-dialog__card-title">Restore progress</p>' +
-            '<p class="settings-dialog__card-copy">Choose a JSON backup file to replace the current saved progress, favorites, and sticky note.</p>' +
+            '<p class="settings-dialog__card-copy">Choose a JSON backup file to replace the current saved progress, favorites, sticky note, and visibility settings.</p>' +
             '<input id="settingsRestoreInput" class="visually-hidden" type="file" accept=".json,application/json">' +
             '<div class="settings-dialog__action-row">' +
               '<button class="button button--ghost" type="button" data-action="choose-restore">Choose backup file</button>' +
@@ -153,12 +164,12 @@
           '</section>' +
           '<section class="settings-dialog__card settings-dialog__card--danger">' +
             '<p class="settings-dialog__card-title">Reset progress</p>' +
-            '<p class="settings-dialog__card-copy">Clear every saved task count, favorite, and sticky note from this browser.</p>' +
+            '<p class="settings-dialog__card-copy">Clear every saved task count, favorite, sticky note, and visibility setting from this browser.</p>' +
             '<div class="settings-dialog__action-row">' +
               '<button class="button button--ghost settings-dialog__button--danger" type="button" data-action="request-reset">Reset all progress</button>' +
             '</div>' +
             '<div id="settingsResetConfirm" class="settings-dialog__confirm settings-dialog__confirm--danger" hidden>' +
-              '<p class="settings-dialog__confirm-copy">This will remove all tracked progress, favorites, and sticky note content saved in this browser.</p>' +
+              '<p class="settings-dialog__confirm-copy">This will remove all tracked progress, favorites, sticky note content, and visibility settings saved in this browser.</p>' +
               '<div class="settings-dialog__action-row settings-dialog__action-row--stack">' +
                 '<button class="button button--danger button--small" type="button" data-action="confirm-reset">Confirm reset</button>' +
                 '<button class="button button--ghost button--small" type="button" data-action="cancel-reset">Cancel</button>' +
@@ -177,6 +188,7 @@
     var feedback = dialog.querySelector("#settingsFeedback");
     var snapshotTasks = dialog.querySelector("#settingsSnapshotTasks");
     var snapshotFavorites = dialog.querySelector("#settingsSnapshotFavorites");
+    var crownUpgradesToggle = dialog.querySelector("#settingsCrownUpgradesToggle");
     var restoreInput = dialog.querySelector("#settingsRestoreInput");
     var restoreMeta = dialog.querySelector("#settingsRestoreMeta");
     var restoreConfirm = dialog.querySelector("#settingsRestoreConfirm");
@@ -207,6 +219,10 @@
 
       snapshotTasks.textContent = formatCount(summary.trackedTasks, "tracked task", "tracked tasks");
       snapshotFavorites.textContent = formatCount(summary.favoriteCount, "favorite saved", "favorites saved") + (summary.hasStickyNote ? " + sticky note" : "");
+
+      if (crownUpgradesToggle) {
+        crownUpgradesToggle.checked = Boolean(window.DMZStorage.getUpgradeVisibilitySettings().showCrownUpgrades);
+      }
     }
 
     function clearRestoreState() {
@@ -285,6 +301,14 @@
     }
 
     trigger.addEventListener("click", openDialog);
+
+    if (crownUpgradesToggle) {
+      crownUpgradesToggle.addEventListener("change", function () {
+        window.DMZStorage.setUpgradeVisibilitySettings({
+          showCrownUpgrades: crownUpgradesToggle.checked
+        });
+      });
+    }
 
     dialog.addEventListener("cancel", function (event) {
       event.preventDefault();

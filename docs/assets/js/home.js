@@ -123,11 +123,11 @@
   }
 
   function renderCategoryCards(query, state) {
-    return window.DMZApp.getCategories().map(function (category) {
+    return window.DMZApp.getCategories(state).map(function (category) {
       var meta = window.DMZApp.getCategoryMeta(category.slug);
       var cardIcons = getCategoryCardIcons(category, meta);
       var stats = window.DMZApp.getCategoryStats(category, state);
-      var muted = query && !window.DMZApp.categoryMatchesQuery(category, query);
+      var muted = query && !window.DMZApp.categoryMatchesQuery(category, query, state);
 
       return "<a class=\"category-card" + (muted ? " is-muted" : "") + "\" href=\"" + meta.href + "\" style=\"--card-accent:" + meta.accent + ";\">" +
         "<div class=\"category-card__copy\">" +
@@ -270,7 +270,7 @@
     }
 
     if (parsed.type === "upgrade") {
-      upgradeEntry = window.DMZApp.getUpgradeEntry(parsed.value);
+      upgradeEntry = window.DMZApp.getUpgradeEntry(parsed.value, state);
 
       if (!upgradeEntry) {
         return null;
@@ -325,8 +325,11 @@
     return preview;
   }
 
-  function favoriteEntryMatchesQuery(entry, query) {
+  function favoriteEntryMatchesQuery(entry, query, state) {
     var normalizedQuery = normalizeFavoriteQuery(query);
+    var categoryText = state && state.upgradeVisibility && state.upgradeVisibility.showCrownUpgrades === false
+      ? normalizeFavoriteQuery(entry.category.title)
+      : normalizeFavoriteQuery(entry.category.title + " " + entry.category.summary);
 
     if (!normalizedQuery) {
       return true;
@@ -340,9 +343,8 @@
       return Boolean(window.DMZBarter && window.DMZBarter.recipeMatchesQuery && window.DMZBarter.recipeMatchesQuery(entry.recipe, normalizedQuery));
     }
 
-    return window.DMZApp.upgradeMatchesQuery(entry.upgrade, normalizedQuery) ||
-      normalizeFavoriteQuery(entry.category.title).indexOf(normalizedQuery) !== -1 ||
-      normalizeFavoriteQuery(entry.category.summary).indexOf(normalizedQuery) !== -1;
+    return window.DMZApp.upgradeMatchesQuery(entry.upgrade, normalizedQuery, state) ||
+      categoryText.indexOf(normalizedQuery) !== -1;
   }
 
   function renderFavoriteUpgradeCard(entry, state, canReorder, collapseByDefault) {
@@ -529,7 +531,7 @@
     var stickyNoteVisible = entries.some(isStickyNoteEntry);
     var filteredEntries = normalizedQuery
       ? entries.filter(function (entry) {
-          return favoriteEntryMatchesQuery(entry, normalizedQuery);
+          return favoriteEntryMatchesQuery(entry, normalizedQuery, state);
         })
       : entries;
     var filteredFavoriteCount = countPinnedFavorites(filteredEntries);
