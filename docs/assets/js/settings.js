@@ -129,13 +129,6 @@
         '<p id="settingsFeedback" class="settings-dialog__feedback" hidden></p>' +
         '<div class="settings-dialog__grid">' +
           '<section class="settings-dialog__card">' +
-            '<p class="settings-dialog__card-title">Backup progress</p>' +
-            '<p class="settings-dialog__card-copy">Download a JSON backup of the progress, favorites, sticky note, and visibility settings stored in this browser.</p>' +
-            '<div class="settings-dialog__action-row">' +
-              '<button class="button button--primary" type="button" data-action="download-backup">Download backup</button>' +
-            '</div>' +
-          '</section>' +
-          '<section class="settings-dialog__card">' +
             '<p class="settings-dialog__card-title">Crown upgrades</p>' +
             '<p class="settings-dialog__card-copy">Show or hide Crown faction upgrades across categories, search, and favorites without deleting saved progress.</p>' +
             '<label class="layout-settings-dialog__toggle">' +
@@ -145,6 +138,13 @@
                 '<span class="layout-settings-dialog__hint">Turn this off to hide Crown cards while keeping their saved counts for later.</span>' +
               '</span>' +
             '</label>' +
+          '</section>' +
+          '<section class="settings-dialog__card">' +
+            '<p class="settings-dialog__card-title">Backup progress</p>' +
+            '<p class="settings-dialog__card-copy">Download a JSON backup of the progress, favorites, sticky note, and visibility settings stored in this browser.</p>' +
+            '<div class="settings-dialog__action-row">' +
+              '<button class="button button--primary" type="button" data-action="download-backup">Download backup</button>' +
+            '</div>' +
           '</section>' +
           '<section class="settings-dialog__card">' +
             '<p class="settings-dialog__card-title">Restore progress</p>' +
