@@ -168,7 +168,13 @@
   }
 
   function isCrownUpgrade(upgrade) {
-    return Boolean(upgrade && upgrade.unlock && normalize(upgrade.unlock.name) === "crown");
+    var title = upgrade && upgrade.title ? normalize(upgrade.title) : "";
+    var unlockName = upgrade && upgrade.unlock && upgrade.unlock.name ? normalize(upgrade.unlock.name) : "";
+    var iconPath = upgrade && upgrade.iconPath ? normalize(upgrade.iconPath) : "";
+
+    return title.indexOf("crown") !== -1 ||
+      unlockName === "crown" ||
+      iconPath.indexOf("crown.png") !== -1;
   }
 
   function shouldShowCrownUpgrades(state) {
