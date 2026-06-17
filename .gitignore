@@ -11,3 +11,6 @@ node_modules/
 
 # Local app backups
 dmz-tracker-backup-*.json
+
+# Local agent/config folder
+.github/
