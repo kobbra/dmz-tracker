@@ -327,21 +327,23 @@
 
   function favoriteEntryMatchesQuery(entry, query, state) {
     var normalizedQuery = normalizeFavoriteQuery(query);
-    var categoryText = state && state.upgradeVisibility && state.upgradeVisibility.showCrownUpgrades === false
-      ? normalizeFavoriteQuery(entry.category.title)
-      : normalizeFavoriteQuery(entry.category.title + " " + entry.category.summary);
+    var categoryText;
 
     if (!normalizedQuery) {
       return true;
     }
 
     if (isStickyNoteEntry(entry)) {
-      return true;
+      return false;
     }
 
     if (entry.type === "recipe") {
       return Boolean(window.DMZBarter && window.DMZBarter.recipeMatchesQuery && window.DMZBarter.recipeMatchesQuery(entry.recipe, normalizedQuery));
     }
+
+    categoryText = state && state.upgradeVisibility && state.upgradeVisibility.showCrownUpgrades === false
+      ? normalizeFavoriteQuery(entry.category.title)
+      : normalizeFavoriteQuery(entry.category.title + " " + entry.category.summary);
 
     return window.DMZApp.upgradeMatchesQuery(entry.upgrade, normalizedQuery, state) ||
       categoryText.indexOf(normalizedQuery) !== -1;
@@ -534,6 +536,7 @@
           return favoriteEntryMatchesQuery(entry, normalizedQuery, state);
         })
       : entries;
+    var stickyNoteShown = filteredEntries.some(isStickyNoteEntry);
     var filteredFavoriteCount = countPinnedFavorites(filteredEntries);
     var canReorder = isFavoritesFullscreen && filteredEntries.length > 1 && !normalizedQuery;
     var meta;
@@ -553,15 +556,15 @@
     }
 
     if (normalizedQuery) {
-      if (!favoriteCount && stickyNoteVisible) {
+      if (!favoriteCount && stickyNoteShown) {
         meta = "Sticky note enabled";
       } else {
-        meta = filteredFavoriteCount + " of " + favoriteCount + " favorites matched" + (stickyNoteVisible ? " • Sticky note shown" : "");
+        meta = filteredFavoriteCount + " of " + favoriteCount + " favorites matched" + (stickyNoteShown ? " • Sticky note shown" : "");
       }
     } else if (!favoriteCount && stickyNoteVisible) {
       meta = "Sticky note enabled";
     } else {
-      meta = favoriteCount + (favoriteCount === 1 ? " favorite pinned" : " favorites pinned") + (stickyNoteVisible ? " • Sticky note shown" : "") + (canReorder ? " • Drag cards to reorder" : "");
+      meta = favoriteCount + (favoriteCount === 1 ? " favorite pinned" : " favorites pinned") + (stickyNoteShown ? " • Sticky note shown" : "") + (canReorder ? " • Drag cards to reorder" : "");
     }
 
     return {
@@ -672,6 +675,30 @@
     function syncFavoritesSearchInput() {
       if (fullscreenSearchInput && fullscreenSearchInput.value !== favoriteQuery) {
         fullscreenSearchInput.value = favoriteQuery;
+      }
+    }
+
+    function focusFullscreenSearchInput(selectExistingText) {
+      var applyFocus;
+
+      if (!fullscreenSearchInput || !fullscreenSearch || fullscreenSearch.hidden) {
+        return;
+      }
+
+      applyFocus = function () {
+        if (typeof fullscreenSearchInput.focus === "function") {
+          fullscreenSearchInput.focus();
+        }
+
+        if (selectExistingText && fullscreenSearchInput.value && typeof fullscreenSearchInput.select === "function") {
+          fullscreenSearchInput.select();
+        }
+      };
+
+      if (typeof window.requestAnimationFrame === "function") {
+        window.requestAnimationFrame(applyFocus);
+      } else {
+        window.setTimeout(applyFocus, 0);
       }
     }
 
@@ -970,6 +997,10 @@
 
       clearFavoriteDragState();
       render();
+
+      if (isFavoritesFullscreen) {
+        focusFullscreenSearchInput(Boolean(favoriteQuery));
+      }
     }
 
     function render() {
@@ -1029,6 +1060,40 @@
       });
     }
 
+    document.addEventListener("keydown", function (event) {
+      var target = event.target;
+      var isPrintableKey = Boolean(event.key) && event.key.length === 1 && !/\s/.test(event.key) && !event.ctrlKey && !event.metaKey && !event.altKey;
+
+      if (!isFavoritesFullscreen || !fullscreenSearchInput || !fullscreenSearch || fullscreenSearch.hidden) {
+        return;
+      }
+
+      if (layoutDialog && layoutDialog.open) {
+        return;
+      }
+
+      if (target !== fullscreenButton && target !== document.body && target !== document.documentElement) {
+        return;
+      }
+
+      if (!isPrintableKey && event.key !== "Backspace") {
+        return;
+      }
+
+      event.preventDefault();
+
+      if (isPrintableKey) {
+        setFavoriteQuery(favoriteQuery + event.key);
+      } else if (favoriteQuery) {
+        setFavoriteQuery(favoriteQuery.slice(0, -1));
+      } else {
+        focusFullscreenSearchInput(false);
+        return;
+      }
+
+      focusFullscreenSearchInput(false);
+    });
+
     if (fullscreenButton) {
       fullscreenButton.addEventListener("click", function () {
         var fullscreenRequest;
@@ -1054,14 +1119,30 @@
     }
 
     document.addEventListener("fullscreenchange", function () {
-      if (!getActiveBrowserFullscreenElement() && isFavoritesFullscreen) {
-        setFavoritesFullscreen(false);
+      if (!getActiveBrowserFullscreenElement()) {
+        if (isFavoritesFullscreen) {
+          setFavoritesFullscreen(false);
+        }
+
+        return;
+      }
+
+      if (isFavoritesFullscreen) {
+        focusFullscreenSearchInput(Boolean(favoriteQuery));
       }
     });
 
     document.addEventListener("webkitfullscreenchange", function () {
-      if (!getActiveBrowserFullscreenElement() && isFavoritesFullscreen) {
-        setFavoritesFullscreen(false);
+      if (!getActiveBrowserFullscreenElement()) {
+        if (isFavoritesFullscreen) {
+          setFavoritesFullscreen(false);
+        }
+
+        return;
+      }
+
+      if (isFavoritesFullscreen) {
+        focusFullscreenSearchInput(Boolean(favoriteQuery));
       }
     });
 
@@ -1122,6 +1203,10 @@
         }
 
         window.DMZStorage.setFavoritesLayoutSettings({ showSearch: layoutSearchToggle.checked });
+
+        if (layoutSearchToggle.checked && isFavoritesFullscreen) {
+          focusFullscreenSearchInput(Boolean(favoriteQuery));
+        }
       });
 
       layoutNoteToggle.addEventListener("change", function () {
