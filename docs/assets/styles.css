@@ -1336,6 +1336,49 @@ body.is-favorites-fullscreen #favoritesLayoutButton {
   padding: 1.7rem 1.8rem 1.85rem;
 }
 
+#searchResultsSection {
+  margin-bottom: 1.45rem;
+  padding: 1.7rem 1.8rem 1.85rem;
+}
+
+#searchResultsSection .panel__header {
+  align-items: flex-start;
+  gap: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+#searchResultsMeta {
+  white-space: nowrap;
+  padding-top: 0.28rem;
+}
+
+#searchResults {
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 1.35rem;
+}
+
+#searchResults .match-card {
+  display: grid;
+  align-content: start;
+  gap: 0.72rem;
+  min-height: 168px;
+  padding: 1.45rem 1.55rem;
+}
+
+#searchResults .match-card__title {
+  font-size: 1.32rem;
+}
+
+#searchResults .match-card__copy {
+  max-width: 34ch;
+}
+
+#searchResults .match-card .progress-track__text {
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .favorites-panel__heading {
   flex: 1 1 460px;
   min-width: min(100%, 360px);
