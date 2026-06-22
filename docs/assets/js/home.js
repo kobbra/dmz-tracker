@@ -172,6 +172,7 @@
       meta: matches.length + " upgrades matched",
       content: matches.map(function (match) {
         var meta = window.DMZApp.getCategoryMeta(match.category.slug);
+        var isFavorite = window.DMZApp.isFavoriteUpgrade(match.upgrade.id, state);
         var preview = match.tasks.length
           ? match.tasks.slice(0, 2).map(function (task) {
               return task.title;
@@ -183,7 +184,10 @@
             "<span class=\"chip chip--accent\">" + window.DMZApp.escapeHtml(match.category.title) + "</span>" +
             "<span class=\"chip" + (match.stats.isComplete ? " chip--success" : "") + "\">" + match.stats.completedTasks + "/" + match.stats.totalTasks + " tasks</span>" +
           "</div>" +
-          "<h3 class=\"match-card__title\"><a href=\"" + meta.href + "#" + match.upgrade.id + "\">" + window.DMZApp.escapeHtml(match.upgrade.title) + "</a></h3>" +
+          "<div class=\"upgrade-card__title-row\">" +
+            "<h3 class=\"match-card__title\"><a href=\"" + meta.href + "#" + match.upgrade.id + "\">" + window.DMZApp.escapeHtml(match.upgrade.title) + "</a></h3>" +
+            window.DMZApp.renderFavoriteToggle(match.upgrade.id, isFavorite) +
+          "</div>" +
           "<p class=\"match-card__copy\">" + window.DMZApp.escapeHtml(preview) + "</p>" +
           window.DMZApp.renderProgressTrack(match.stats.percent, window.DMZApp.formatPercent(match.stats.percent), "upgrade completion", true) +
         "</article>";
@@ -1214,6 +1218,19 @@
         window.DMZStorage.setFavoritesLayoutSettings({ showStickyNote: layoutNoteToggle.checked });
       });
     }
+
+    resultsGrid.addEventListener("click", function (event) {
+      var trigger = event.target.closest("[data-action='toggle-favorite']");
+
+      if (!trigger) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      window.DMZStorage.toggleFavoriteUpgrade(trigger.dataset.favoriteId || trigger.dataset.upgradeId);
+    });
 
     document.addEventListener("mouseup", function () {
       if (!draggedFavoriteId) {

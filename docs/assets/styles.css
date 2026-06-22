@@ -1365,7 +1365,19 @@ body.is-favorites-fullscreen #favoritesLayoutButton {
   padding: 1.45rem 1.55rem;
 }
 
+#searchResults .upgrade-card__title-row {
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+}
+
+#searchResults .favorite-toggle {
+  margin-top: 0;
+}
+
 #searchResults .match-card__title {
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: 1.32rem;
 }
 
