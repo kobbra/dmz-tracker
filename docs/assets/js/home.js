@@ -127,9 +127,8 @@
       var meta = window.DMZApp.getCategoryMeta(category.slug);
       var cardIcons = getCategoryCardIcons(category, meta);
       var stats = window.DMZApp.getCategoryStats(category, state);
-      var muted = query && !window.DMZApp.categoryMatchesQuery(category, query, state);
 
-      return "<a class=\"category-card" + (muted ? " is-muted" : "") + "\" href=\"" + meta.href + "\" style=\"--card-accent:" + meta.accent + ";\">" +
+      return "<a class=\"category-card\" data-category-slug=\"" + window.DMZApp.escapeHtml(category.slug) + "\" href=\"" + meta.href + "\" style=\"--card-accent:" + meta.accent + ";\">" +
         "<div class=\"category-card__copy\">" +
           "<h3 class=\"category-card__title\">" + window.DMZApp.escapeHtml(category.title) + "</h3>" +
           "<p class=\"category-card__summary\">" + window.DMZApp.escapeHtml(category.summary) + "</p>" +
@@ -708,7 +707,7 @@
 
     function setHomeQuery(nextQuery) {
       homeQuery = nextQuery || "";
-      render();
+      renderHomeSearchState(window.DMZStorage.getState());
     }
 
     function setFavoriteQuery(nextQuery) {
@@ -1007,12 +1006,37 @@
       }
     }
 
+    function syncCategoryCardMutedState(query, state) {
+      var categoriesBySlug = Object.create(null);
+
+      window.DMZApp.getCategories(state).forEach(function (category) {
+        categoriesBySlug[category.slug] = category;
+      });
+
+      Array.prototype.forEach.call(categoryGrid.querySelectorAll(".category-card[data-category-slug]"), function (card) {
+        var category = categoriesBySlug[card.dataset.categorySlug];
+        var muted = Boolean(query) && category
+          ? !window.DMZApp.categoryMatchesQuery(category, query, state)
+          : false;
+
+        card.classList.toggle("is-muted", muted);
+      });
+    }
+
+    function renderHomeSearchState(state) {
+      var searchState = renderSearchMatches(homeQuery, state);
+
+      syncCategoryCardMutedState(homeQuery, state);
+      resultsSection.hidden = searchState.hidden;
+      resultsMeta.textContent = searchState.meta;
+      resultsGrid.innerHTML = searchState.content;
+    }
+
     function render() {
       var state = window.DMZStorage.getState();
       var favoritesLayout = state.favoritesLayout;
       var stats = window.DMZApp.getOverallStats(state);
       var favoriteState;
-      var searchState;
 
       if (!favoritesLayout.showSearch && favoriteQuery) {
         favoriteQuery = "";
@@ -1048,10 +1072,8 @@
         });
       });
       syncFavoritesToggleAllButton();
-      categoryGrid.innerHTML = renderCategoryCards(homeQuery, state);
-      resultsSection.hidden = searchState.hidden;
-      resultsMeta.textContent = searchState.meta;
-      resultsGrid.innerHTML = searchState.content;
+      categoryGrid.innerHTML = renderCategoryCards("", state);
+      renderHomeSearchState(state);
     }
 
     searchInput.addEventListener("input", function (event) {
