@@ -590,7 +590,9 @@
     var fullscreenSearchInput = document.getElementById("favoritesSearch");
     var meter = document.getElementById("overallMeter");
     var metrics = document.getElementById("metricGrid");
+    var lastMetricsHtml = null;
     var categoryGrid = document.getElementById("categoryGrid");
+    var lastCategoryCardsHtml = null;
     var favoritesMeta = document.getElementById("favoritesMeta");
     var favoritesGrid = document.getElementById("favoritesGrid");
     var favoritesPanelActions = document.getElementById("favoritesPanelActions");
@@ -1048,7 +1050,14 @@
       searchState = renderSearchMatches(homeQuery, state);
 
       window.DMZApp.renderMeter(meter, stats.percent, "overall completion");
-      metrics.innerHTML = renderMetricGrid(stats);
+
+      // Skip re-rendering unchanged metrics so unrelated updates (e.g. favorites layout) don't flash the cards.
+      var metricsHtml = renderMetricGrid(stats);
+
+      if (metricsHtml !== lastMetricsHtml) {
+        metrics.innerHTML = metricsHtml;
+        lastMetricsHtml = metricsHtml;
+      }
 
       if (favoritesMeta) {
         favoritesMeta.textContent = favoriteState.meta;
@@ -1072,7 +1081,15 @@
         });
       });
       syncFavoritesToggleAllButton();
-      categoryGrid.innerHTML = renderCategoryCards("", state);
+
+      // Skip re-rendering unchanged category cards so unrelated updates (e.g. favorites layout) don't flash their icons.
+      var categoryCardsHtml = renderCategoryCards("", state);
+
+      if (categoryCardsHtml !== lastCategoryCardsHtml) {
+        categoryGrid.innerHTML = categoryCardsHtml;
+        lastCategoryCardsHtml = categoryCardsHtml;
+      }
+
       renderHomeSearchState(state);
     }
 
